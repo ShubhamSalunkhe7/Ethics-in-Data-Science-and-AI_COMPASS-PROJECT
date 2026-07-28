@@ -36,7 +36,7 @@ print("\n[STEP 1] Loading data...")
 from pathlib import Path
 
 project_folder = Path(__file__).parent
-csv_file = project_folder / "compas_cleaned.csv"
+csv_file = project_folder / "Dataset" / "compas_cleaned.csv"
 
 df = pd.read_csv(csv_file)
 
