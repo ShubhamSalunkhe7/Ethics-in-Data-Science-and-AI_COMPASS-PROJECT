@@ -291,3 +291,70 @@ print(f"  Coefficient < 0 means feature DECREASES predicted risk")
 print(f"  Odds Ratio > 1 means higher odds of being labelled high-risk")
 
 
+
+# Visualisations
+# _______________________________________________________
+
+print("\n[STEP 11] Creating visualisations...")
+
+fig, axes = plt.subplots(2, 2, figsize=(14, 10))
+fig.suptitle('Logistic Regression Baseline — COMPAS Fairness Audit',
+             fontsize=18, fontweight='bold', y=0.98)
+
+# Chart 1 — Confusion Matrix
+cm = confusion_matrix(y_test, y_pred)
+sns.heatmap(cm, annot=True, fmt='d', cmap='Blues',
+            xticklabels=['Predicted\nNo Reoffend','Predicted\nReoffend'],
+            yticklabels=['Actual\nNo Reoffend','Actual\nReoffend'],
+            ax=axes[0,0])
+axes[0,0].set_title('Confusion Matrix\n(Overall)', fontweight='bold')
+
+# Chart 2 — FPR Comparison by Race
+races  = ['African-American', 'Caucasian']
+fprs   = [fpr_black, fpr_white]
+colors = ['#C00000', '#2E75B6']
+bars = axes[0,1].bar(races, fprs, color=colors, alpha=0.85, edgecolor='white')
+for bar, v in zip(bars, fprs):
+    axes[0,1].text(bar.get_x() + bar.get_width()/2,
+                   v + 0.005, f'{v:.3f}',
+                   ha='center', va='bottom', fontweight='bold')
+axes[0,1].axhline(y=0.05, color='green', linestyle='--', label='Reference line')
+axes[0,1].set_ylabel('False Positive Rate')
+axes[0,1].set_title('False Positive Rate by Race\n(Logistic Regression Results)',
+                    fontweight='bold')
+axes[0,1].legend()
+axes[0,1].set_ylim(0, max(fprs) * 1.3)
+
+# Chart 3 — Feature Coefficients
+colors_coef = ['#C00000' if c > 0 else '#2E75B6'
+               for c in coef_df['Coefficient']]
+axes[1,0].barh(coef_df['Feature'], coef_df['Coefficient'],
+               color=colors_coef, alpha=0.85, edgecolor='white')
+axes[1,0].axvline(x=0, color='black', linewidth=0.8)
+axes[1,0].set_xlabel('Coefficient Value')
+axes[1,0].set_title('Feature Coefficients\n(Red = increases risk, Blue = decreases risk)',
+                    fontweight='bold')
+
+# Chart 4 — High Risk Rate by Race
+rates  = [rate_black, rate_white]
+bars2  = axes[1,1].bar(races, rates, color=colors, alpha=0.85, edgecolor='white')
+for bar, v in zip(bars2, rates):
+    axes[1,1].text(bar.get_x() + bar.get_width()/2,
+                   v + 0.005, f'{v:.1%}',
+                   ha='center', va='bottom', fontweight='bold')
+axes[1,1].set_ylabel('Predicted High-Risk Rate')
+axes[1,1].set_title(f'Demographic Parity\nDifference = {dpd:.3f} (target: < 0.05)',
+                    fontweight='bold')
+axes[1,1].set_ylim(0, max(rates) * 1.3)
+
+plt.subplots_adjust(
+    left=0.111,
+    bottom=0.069,
+    right=0.946,
+    top=0.844,
+    wspace=0.274,
+    hspace=0.550
+)
+plt.savefig('logistic_regression_results.png', dpi=150, bbox_inches='tight')
+plt.show()
+print("  Chart saved as: logistic_regression_results.png")
