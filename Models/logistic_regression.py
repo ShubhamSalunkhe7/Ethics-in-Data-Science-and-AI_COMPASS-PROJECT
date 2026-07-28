@@ -358,3 +358,31 @@ plt.subplots_adjust(
 plt.savefig('logistic_regression_results.png', dpi=150, bbox_inches='tight')
 plt.show()
 print("  Chart saved as: logistic_regression_results.png")
+
+# Final Summary
+# _______________________________________________________
+
+print("\n" + "=" * 55)
+print("  FINAL SUMMARY")
+print("=" * 55)
+print(f"\n  Model:         Logistic Regression (Baseline)")
+print(f"  Dataset:       COMPAS (5,278 defendants)")
+print(f"  Train/Test:    80% / 20%")
+print(f"\n  PERFORMANCE:")
+print(f"  Accuracy:      {accuracy:.4f}")
+print(f"  AUC-ROC:       {auc:.4f}")
+print(f"  F1 Score:      {f1:.4f}")
+print(f"\n  FAIRNESS:")
+print(f"  FPR Black:     {fpr_black:.4f}")
+print(f"  FPR White:     {fpr_white:.4f}")
+print(f"  FPR Ratio:     {fpr_ratio:.2f}x  (target: 1.00x)")
+print(f"  DPD:           {dpd:.4f}  (target: < 0.05)")
+print(f"\n  VERDICT:")
+if abs(dpd) > 0.05:
+    print(f"  ✗ Model shows racial bias (DPD = {dpd:.4f})")
+else:
+    print(f"  ✓ Model passes demographic parity test")
+print(f"\n  Baseline established. Compare all future")
+print(f"  models against these numbers.")
+print("=" * 55)
+
