@@ -81,3 +81,37 @@ print(f"  Testing rows:  {len(X_test)}")
 # Trees split data based on thresholds, not distances
 # So age=25 and priors=3 work fine without scaling
 
+
+# Build and Train the Random Forest
+# _______________________________________________________
+
+print("\n[STEP 4] Training Random Forest...")
+print("  Building 200 decision trees...")
+
+# n_estimators=200 means 200 individual decision trees
+# Each tree votes. Majority wins.
+# More trees = more stable but slower to train
+
+# max_depth=10 means each tree can ask a maximum of
+# 10 questions deep. This prevents overfitting.
+# Without this limit trees grow until they memorise
+# training data perfectly (bad for new data)
+
+# min_samples_leaf=5 means each final leaf of the tree
+# must have at least 5 training examples
+# This stops the tree from making rules about just 1 person
+
+# n_jobs=-1 means use ALL your CPU cores to train faster
+
+model = RandomForestClassifier(
+    n_estimators=200,
+    max_depth=10,
+    min_samples_leaf=5,
+    random_state=RANDOM_SEED,
+    n_jobs=-1
+)
+
+model.fit(X_train, y_train)
+
+print("  200 trees built and trained!")
+print(f"  Total trees in forest: {model.n_estimators}")
