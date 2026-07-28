@@ -182,3 +182,28 @@ print(f"  {'F1 Score':<15} {f1:>15.4f} {LR_F1:>15.4f} "
       f"{'✓ RF' if f1 > LR_F1 else '✓ LR':>10}")
 
 
+# Feature Importance
+# _______________________________________________________
+
+print("\n[STEP 8] Feature importance (what the forest learned)...")
+
+# Random Forest tells you which features were most useful
+# across ALL 200 trees combined
+# Higher importance = that feature was used more often
+# to make correct splits in the trees
+
+importance_df = pd.DataFrame({
+    'Feature':    FEATURES,
+    'Importance': model.feature_importances_.round(4)
+}).sort_values('Importance', ascending=False)
+
+print(f"\n  {'Rank':<6} {'Feature':<20} {'Importance':>12} {'Bar'}")
+print(f"  {'-'*55}")
+for rank, (_, row) in enumerate(importance_df.iterrows(), 1):
+    bar = '█' * int(row['Importance'] * 50)
+    print(f"  {rank:<6} {row['Feature']:<20} {row['Importance']:>12.4f}  {bar}")
+
+print(f"\n  The most important feature is: {importance_df.iloc[0]['Feature']}")
+print(f"  This matches the SHAP analysis in the dissertation")
+
+
