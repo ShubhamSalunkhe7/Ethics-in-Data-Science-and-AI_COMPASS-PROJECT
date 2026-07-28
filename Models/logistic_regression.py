@@ -78,3 +78,27 @@ print(f"  y shape: {y.shape}")
 
 
 
+# Split Data into Training and Testing
+# _______________________________________________________
+
+print("\n[STEP 3] Splitting data...")
+
+# We split into:
+# 80% TRAINING - the model learns from this
+# 20% TESTING  - we test the model on data it has NEVER seen
+#
+# stratify= means the split keeps the same proportion of
+# 0s and 1s in both halves (important for fair evaluation)
+
+X_train, X_test, y_train, y_test, r_train, r_test = train_test_split(
+    X, y, r,
+    test_size=0.2,
+    random_state=RANDOM_SEED,
+    stratify=y
+)
+
+print(f"  Training rows: {len(X_train)}")
+print(f"  Testing rows:  {len(X_test)}")
+print(f"  Training recidivism rate: {y_train.mean():.1%}")
+print(f"  Testing recidivism rate:  {y_test.mean():.1%}")
+
