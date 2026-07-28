@@ -220,3 +220,49 @@ print(f"  {'✓ BEATS COMPAS!' if accuracy > 0.65 else '✗ Below COMPAS'}")
 
 
 
+# Racial Fairness Analysis
+# _______________________________________________________
+
+print("\n[STEP 9] Racial fairness analysis...")
+
+# Split test results by race
+mask_black = (r_test == 1)
+mask_white = (r_test == 0)
+
+# Overall accuracy per race
+acc_black = accuracy_score(y_test[mask_black], y_pred[mask_black])
+acc_white = accuracy_score(y_test[mask_white], y_pred[mask_white])
+
+# F1 per race
+f1_black  = f1_score(y_test[mask_black], y_pred[mask_black])
+f1_white  = f1_score(y_test[mask_white], y_pred[mask_white])
+
+# False Positive Rate per race
+# FPR = out of people who did NOT reoffend, how many were
+#        wrongly labelled as high-risk?
+fp_black = ((y_pred[mask_black]==1) & (y_test.values[mask_black]==0)).sum()
+tn_black = ((y_pred[mask_black]==0) & (y_test.values[mask_black]==0)).sum()
+fpr_black = fp_black / (fp_black + tn_black)
+
+fp_white = ((y_pred[mask_white]==1) & (y_test.values[mask_white]==0)).sum()
+tn_white = ((y_pred[mask_white]==0) & (y_test.values[mask_white]==0)).sum()
+fpr_white = fp_white / (fp_white + tn_white)
+
+# Demographic Parity Difference
+# Rate of high-risk prediction for Black minus White
+rate_black = y_pred[mask_black].mean()
+rate_white = y_pred[mask_white].mean()
+dpd = rate_black - rate_white
+
+print(f"\n  {'Metric':<35} {'Black':>10} {'White':>10}")
+print(f"  {'-'*55}")
+print(f"  {'Accuracy':<35} {acc_black:>10.4f} {acc_white:>10.4f}")
+print(f"  {'F1 Score':<35} {f1_black:>10.4f} {f1_white:>10.4f}")
+print(f"  {'False Positive Rate (FPR)':<35} {fpr_black:>10.4f} {fpr_white:>10.4f}")
+print(f"  {'High-Risk Prediction Rate':<35} {rate_black:>10.4f} {rate_white:>10.4f}")
+print(f"  {'Demographic Parity Diff':<35} {dpd:>10.4f} {'(target: < 0.05)':>10}")
+print(f"\n  ProPublica reported FPR: Black ≈ 0.449, White ≈ 0.235")
+print(f"  Our model FPR:           Black = {fpr_black:.3f}, White = {fpr_white:.3f}")
+fpr_ratio = fpr_black / fpr_white if fpr_white > 0 else 0
+print(f"  FPR Ratio (Black/White): {fpr_ratio:.2f}x")
+
