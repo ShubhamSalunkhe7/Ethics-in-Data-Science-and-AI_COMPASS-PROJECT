@@ -128,3 +128,30 @@ print("  Features scaled successfully")
 print(f"  Example - Age mean before scaling: {X_train['age'].mean():.1f}")
 print(f"  Example - Age mean after scaling:  {X_train_scaled[:,0].mean():.4f}")
 
+
+# Train the Logistic Regression Model
+# _______________________________________________________
+
+print("\n[STEP 5] Training Logistic Regression model...")
+
+# C=1.0 controls regularisation strength
+# Higher C = model fits training data more tightly
+# Lower C = simpler model, less risk of overfitting
+# 1.0 is the default sensible starting point
+
+# max_iter=1000 gives the model enough steps to converge
+# (find the best weights)
+
+model = LogisticRegression(
+    C=1.0,
+    max_iter=1000,
+    solver='lbfgs',
+    random_state=RANDOM_SEED
+)
+
+# .fit() is where the actual learning happens
+# The model looks at all training examples and adjusts
+# its weights to minimise prediction errors
+model.fit(X_train_scaled, y_train)
+
+print("  Model trained successfully!")
