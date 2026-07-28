@@ -186,3 +186,37 @@ print(f"  CV Accuracy:  {cv_accuracy.mean():.4f} ± {cv_accuracy.std():.4f}")
 print(f"  CV AUC-ROC:   {cv_auc.mean():.4f} ± {cv_auc.std():.4f}")
 print(f"  CV F1 Score:  {cv_f1.mean():.4f} ± {cv_f1.std():.4f}")
 
+
+# Make Predictions on Test Set
+# _______________________________________________________
+
+print("\n[STEP 7] Making predictions on test set...")
+
+# y_pred = hard predictions (0 or 1)
+# y_prob = probability of being class 1 (0.0 to 1.0)
+y_pred = model.predict(X_test_scaled)
+y_prob = model.predict_proba(X_test_scaled)[:, 1]
+
+print(f"  Predictions made for {len(y_pred)} defendants")
+print(f"  Predicted high-risk: {y_pred.sum()} ({y_pred.mean():.1%})")
+print(f"  Actual high-risk:    {y_test.sum()} ({y_test.mean():.1%})")
+
+
+# Measure Performance
+# _______________________________________________________
+
+print("\n[STEP 8] Measuring overall performance...")
+
+accuracy = accuracy_score(y_test, y_pred)
+auc      = roc_auc_score(y_test, y_prob)
+f1       = f1_score(y_test, y_pred)
+
+print(f"\n  OVERALL RESULTS:")
+print(f"  Accuracy:  {accuracy:.4f} ({accuracy:.1%})")
+print(f"  AUC-ROC:   {auc:.4f}")
+print(f"  F1 Score:  {f1:.4f}")
+print(f"\n  (COMPAS benchmark accuracy ≈ 65%)")
+print(f"  {'✓ BEATS COMPAS!' if accuracy > 0.65 else '✗ Below COMPAS'}")
+
+
+
