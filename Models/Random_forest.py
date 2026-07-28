@@ -264,3 +264,80 @@ print(f"\n  Demographic Parity Difference: {dpd:.4f}  (target: < 0.05)")
 print(f"  Equalised Odds Difference:     {eod:.4f}  (target: < 0.05)")
 print(f"  FPR Ratio (Black/White):       {fpr_ratio:.2f}x  (target: 1.00x)")
 
+
+
+
+# Visualisations
+# _______________________________________________________
+
+print("\n[STEP 10] Creating charts...")
+
+fig, axes = plt.subplots(2, 2, figsize=(12, 10))
+fig.suptitle('Random Forest — COMPAS Fairness Audit',
+             fontsize=14, fontweight='bold')
+
+# Chart 1 — Confusion Matrix
+cm = confusion_matrix(y_test, y_pred)
+sns.heatmap(cm, annot=True, fmt='d', cmap='Greens',
+            xticklabels=['Predicted\nNo Reoffend', 'Predicted\nReoffend'],
+            yticklabels=['Actual\nNo Reoffend', 'Actual\nReoffend'],
+            ax=axes[0, 0])
+axes[0, 0].set_title('Confusion Matrix', fontweight='bold')
+
+# Chart 2 — Feature Importance
+colors_fi = ['#1F3864', '#2E75B6', '#4472C4', '#BDD7EE']
+axes[1, 0].barh(importance_df['Feature'],
+                importance_df['Importance'],
+                color=colors_fi, alpha=0.85, edgecolor='white')
+axes[1, 0].set_xlabel('Importance Score')
+axes[1, 0].set_title('Feature Importance\n(Higher = more useful for prediction)',
+                     fontweight='bold')
+for i, v in enumerate(importance_df['Importance']):
+    axes[1, 0].text(v + 0.002, i, f'{v:.4f}', va='center', fontsize=9)
+
+# Chart 3 — FPR by Race
+races  = ['African-American', 'Caucasian']
+fprs   = [fpr_black, fpr_white]
+colors = ['#C00000', '#2E75B6']
+bars = axes[0, 1].bar(races, fprs, color=colors, alpha=0.85, edgecolor='white')
+for bar, v in zip(bars, fprs):
+    axes[0, 1].text(bar.get_x() + bar.get_width()/2,
+                    v + 0.005, f'{v:.3f}',
+                    ha='center', va='bottom', fontweight='bold')
+axes[0, 1].axhline(y=0.05, color='green', linestyle='--',
+                   label='Fair threshold (0.05)')
+axes[0, 1].set_ylabel('False Positive Rate')
+axes[0, 1].set_title('False Positive Rate by Race', fontweight='bold')
+axes[0, 1].legend()
+axes[0, 1].set_ylim(0, max(fprs) * 1.35)
+
+# Chart 4 — Model Comparison vs Baseline
+metrics      = ['Accuracy', 'AUC-ROC', 'F1 Score']
+rf_scores    = [accuracy, auc, f1]
+lr_scores    = [LR_ACCURACY, LR_AUC, LR_F1]
+x            = np.arange(len(metrics))
+w            = 0.35
+bars1 = axes[1, 1].bar(x - w/2, lr_scores, w,
+                        label='Logistic Regression (Baseline)',
+                        color='#2E75B6', alpha=0.85, edgecolor='white')
+bars2 = axes[1, 1].bar(x + w/2, rf_scores, w,
+                        label='Random Forest',
+                        color='#1F3864', alpha=0.85, edgecolor='white')
+for bar in list(bars1) + list(bars2):
+    axes[1, 1].text(bar.get_x() + bar.get_width()/2,
+                    bar.get_height() + 0.003,
+                    f'{bar.get_height():.3f}',
+                    ha='center', va='bottom', fontsize=8)
+axes[1, 1].set_xticks(x)
+axes[1, 1].set_xticklabels(metrics)
+axes[1, 1].set_ylim(0.5, 0.85)
+axes[1, 1].set_ylabel('Score')
+axes[1, 1].set_title('Random Forest vs Baseline Comparison',
+                     fontweight='bold')
+axes[1, 1].legend(fontsize=8)
+
+plt.tight_layout()
+plt.savefig('random_forest_results.png', dpi=150, bbox_inches='tight')
+plt.show()
+print("  Chart saved as: random_forest_results.png")
+
