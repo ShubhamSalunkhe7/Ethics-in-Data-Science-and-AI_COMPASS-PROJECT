@@ -56,3 +56,28 @@ r = df[PROTECTED]
 print(f"  Features: {FEATURES}")
 print(f"  X shape: {X.shape}")
 
+# Split Data into Training and Testing
+# _______________________________________________________
+
+print("\n[STEP 3] Splitting data (80% train, 20% test)...")
+
+# Exact same split as Logistic Regression
+# Using same RANDOM_SEED = 42 ensures IDENTICAL split
+# This makes comparison between models perfectly fair
+
+X_train, X_test, y_train, y_test, r_train, r_test = train_test_split(
+    X, y, r,
+    test_size=0.2,
+    random_state=RANDOM_SEED,
+    stratify=y
+)
+
+print(f"  Training rows: {len(X_train)}")
+print(f"  Testing rows:  {len(X_test)}")
+
+# NOTE: Random Forest does NOT need feature scaling
+# Unlike Logistic Regression which needs StandardScaler,
+# Random Forest uses decision trees which work on raw numbers
+# Trees split data based on thresholds, not distances
+# So age=25 and priors=3 work fine without scaling
+
