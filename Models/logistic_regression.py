@@ -155,3 +155,34 @@ model = LogisticRegression(
 model.fit(X_train_scaled, y_train)
 
 print("  Model trained successfully!")
+
+
+# Cross Validation
+# _______________________________________________________
+
+print("\n[STEP 6] Running 5-fold cross validation...")
+
+# Cross validation is a more reliable way to measure performance
+# Instead of one 80/20 split, we do 5 different splits:
+#
+# Split 1: [TEST][TRAIN][TRAIN][TRAIN][TRAIN]
+# Split 2: [TRAIN][TEST][TRAIN][TRAIN][TRAIN]
+# Split 3: [TRAIN][TRAIN][TEST][TRAIN][TRAIN]
+# Split 4: [TRAIN][TRAIN][TRAIN][TEST][TRAIN]
+# Split 5: [TRAIN][TRAIN][TRAIN][TRAIN][TEST]
+#
+# Then we average the 5 results for a more honest estimate
+
+cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=RANDOM_SEED)
+
+cv_accuracy = cross_val_score(model, X_train_scaled, y_train,
+                               cv=cv, scoring='accuracy')
+cv_auc      = cross_val_score(model, X_train_scaled, y_train,
+                               cv=cv, scoring='roc_auc')
+cv_f1       = cross_val_score(model, X_train_scaled, y_train,
+                               cv=cv, scoring='f1')
+
+print(f"  CV Accuracy:  {cv_accuracy.mean():.4f} ± {cv_accuracy.std():.4f}")
+print(f"  CV AUC-ROC:   {cv_auc.mean():.4f} ± {cv_auc.std():.4f}")
+print(f"  CV F1 Score:  {cv_f1.mean():.4f} ± {cv_f1.std():.4f}")
+
