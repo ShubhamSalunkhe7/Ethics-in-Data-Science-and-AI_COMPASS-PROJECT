@@ -266,3 +266,28 @@ print(f"  Our model FPR:           Black = {fpr_black:.3f}, White = {fpr_white:.
 fpr_ratio = fpr_black / fpr_white if fpr_white > 0 else 0
 print(f"  FPR Ratio (Black/White): {fpr_ratio:.2f}x")
 
+
+# Model Coefficients (What Did It Learn?)
+# _______________________________________________________
+
+print("\n[STEP 10] Model coefficients (what each feature learned)...")
+
+coef_df = pd.DataFrame({
+    'Feature':     FEATURES,
+    'Coefficient': model.coef_[0].round(4),
+    'Odds Ratio':  np.exp(model.coef_[0]).round(4)
+}).sort_values('Coefficient', key=abs, ascending=False)
+
+print(f"\n  {'Feature':<20} {'Coefficient':>12} {'Odds Ratio':>12} {'Effect'}")
+print(f"  {'-'*60}")
+for _, row in coef_df.iterrows():
+    direction = '↑ increases risk' if row['Coefficient'] > 0 else '↓ decreases risk'
+    print(f"  {row['Feature']:<20} {row['Coefficient']:>12.4f} "
+          f"{row['Odds Ratio']:>12.4f}  {direction}")
+
+print(f"\n  HOW TO READ THIS:")
+print(f"  Coefficient > 0 means feature INCREASES predicted risk")
+print(f"  Coefficient < 0 means feature DECREASES predicted risk")
+print(f"  Odds Ratio > 1 means higher odds of being labelled high-risk")
+
+
