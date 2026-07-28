@@ -341,3 +341,38 @@ plt.savefig('random_forest_results.png', dpi=150, bbox_inches='tight')
 plt.show()
 print("  Chart saved as: random_forest_results.png")
 
+
+# Final Summary
+# _______________________________________________________
+
+print("\n" + "=" * 55)
+print("  RANDOM FOREST — FINAL SUMMARY")
+print("=" * 55)
+print(f"\n  Model:         Random Forest (200 trees)")
+print(f"  Dataset:       COMPAS (5,278 defendants)")
+print(f"  Train/Test:    80% / 20%")
+print(f"\n  PERFORMANCE vs LOGISTIC REGRESSION BASELINE:")
+print(f"  {'Metric':<15} {'RF':>10} {'LR':>10} {'Winner':>10}")
+print(f"  {'-'*47}")
+print(f"  {'Accuracy':<15} {accuracy:>10.4f} {LR_ACCURACY:>10.4f} "
+      f"{'RF ✓' if accuracy > LR_ACCURACY else 'LR ✓':>10}")
+print(f"  {'AUC-ROC':<15} {auc:>10.4f} {LR_AUC:>10.4f} "
+      f"{'RF ✓' if auc > LR_AUC else 'LR ✓':>10}")
+print(f"  {'F1 Score':<15} {f1:>10.4f} {LR_F1:>10.4f} "
+      f"{'RF ✓' if f1 > LR_F1 else 'LR ✓':>10}")
+print(f"\n  FAIRNESS:")
+print(f"  FPR Black:     {fpr_black:.4f}")
+print(f"  FPR White:     {fpr_white:.4f}")
+print(f"  FPR Ratio:     {fpr_ratio:.2f}x  (target: 1.00x)")
+print(f"  DPD:           {dpd:.4f}  (target: < 0.05)")
+print(f"  EOD:           {eod:.4f}  (target: < 0.05)")
+print(f"\n  TOP FEATURE:   {importance_df.iloc[0]['Feature']} "
+      f"(importance: {importance_df.iloc[0]['Importance']:.4f})")
+print(f"\n  VERDICT:")
+if abs(dpd) > 0.05:
+    print(f"  ✗ Model shows racial bias (DPD = {dpd:.4f})")
+else:
+    print(f"  ✓ Model passes demographic parity test")
+print(f"\n  KEY QUESTION FOR DISSERTATION:")
+print(f"  Does higher accuracy justify lower fairness?")
+print("=" * 55)
