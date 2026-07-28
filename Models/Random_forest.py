@@ -137,3 +137,48 @@ print(f"  CV Accuracy: {cv_accuracy.mean():.4f} ± {cv_accuracy.std():.4f}")
 print(f"  CV AUC-ROC:  {cv_auc.mean():.4f} ± {cv_auc.std():.4f}")
 print(f"  CV F1 Score: {cv_f1.mean():.4f} ± {cv_f1.std():.4f}")
 
+# Make Predictions on Test Set
+# _______________________________________________________
+
+print("\n[STEP 6] Making predictions...")
+
+# y_pred = hard prediction (0 or 1)
+# This is the MAJORITY VOTE of all 200 trees
+
+# y_prob = probability (0.0 to 1.0)
+# This is the PROPORTION of trees that voted "1"
+# Example: if 140 out of 200 trees say "reoffend"
+# then y_prob = 140/200 = 0.70
+
+y_pred = model.predict(X_test)
+y_prob = model.predict_proba(X_test)[:, 1]
+
+print(f"  Predictions made for {len(y_pred)} defendants")
+print(f"  Predicted high-risk: {y_pred.sum()} ({y_pred.mean():.1%})")
+print(f"  Actual high-risk:    {y_test.sum()} ({y_test.mean():.1%})")
+
+# Measure Overall Performance
+# _______________________________________________________
+
+print("\n[STEP 7] Measuring performance...")
+
+accuracy = accuracy_score(y_test, y_pred)
+auc      = roc_auc_score(y_test, y_prob)
+f1       = f1_score(y_test, y_pred)
+
+# Logistic Regression baseline scores (from previous model)
+# We hardcode these here for direct comparison
+LR_ACCURACY = 0.683
+LR_AUC      = 0.742
+LR_F1       = 0.648
+
+print(f"\n  {'Metric':<15} {'Random Forest':>15} {'LR Baseline':>15} {'Better?':>10}")
+print(f"  {'-'*57}")
+print(f"  {'Accuracy':<15} {accuracy:>15.4f} {LR_ACCURACY:>15.4f} "
+      f"{'✓ RF' if accuracy > LR_ACCURACY else '✓ LR':>10}")
+print(f"  {'AUC-ROC':<15} {auc:>15.4f} {LR_AUC:>15.4f} "
+      f"{'✓ RF' if auc > LR_AUC else '✓ LR':>10}")
+print(f"  {'F1 Score':<15} {f1:>15.4f} {LR_F1:>15.4f} "
+      f"{'✓ RF' if f1 > LR_F1 else '✓ LR':>10}")
+
+
