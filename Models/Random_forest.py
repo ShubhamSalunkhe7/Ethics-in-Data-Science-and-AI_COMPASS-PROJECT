@@ -29,7 +29,12 @@ print("=" * 55)
 
 print("\n[STEP 1] Loading data...")
 
-df = pd.read_csv("compas_cleaned.csv")
+from pathlib import Path
+
+project_folder = Path(__file__).resolve().parent.parent
+csv_file = project_folder / "Dataset" / "compas_cleaned.csv"
+
+df = pd.read_csv(csv_file)
 
 print(f"  Total rows: {len(df)}")
 print(f"  Recidivism rate: {df['two_year_recid'].mean():.1%}")
