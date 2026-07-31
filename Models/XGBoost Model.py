@@ -56,3 +56,26 @@ r = df[PROTECTED]
 print(f"  Features: {FEATURES}")
 
 
+# SECTION 4 - Train/Test Split
+# _______________________________________________________
+
+print("\n[STEP 3] Splitting data...")
+
+# Identical split to all previous models
+# RANDOM_SEED=42 ensures same 1,056 test cases
+# for perfectly fair comparison
+
+X_train, X_test, y_train, y_test, r_train, r_test = train_test_split(
+    X, y, r,
+    test_size=0.2,
+    random_state=RANDOM_SEED,
+    stratify=y
+)
+
+print(f"  Training rows: {len(X_train)}")
+print(f"  Testing rows:  {len(X_test)}")
+
+# NOTE: XGBoost also does NOT need feature scaling
+# Like Random Forest, it uses trees internally
+# Trees work on thresholds not distances
+
