@@ -79,3 +79,21 @@ print(f"  Testing rows:  {len(X_test)}")
 # Like Random Forest, it uses trees internally
 # Trees work on thresholds not distances
 
+# SECTION 5 - Handle Class Imbalance
+# _______________________________________________________
+
+print("\n[STEP 4] Calculating class balance...")
+
+# Count how many did NOT reoffend vs DID reoffend
+count_not_reoffend = (y_train == 0).sum()
+count_reoffend     = (y_train == 1).sum()
+
+# scale_pos_weight tells XGBoost how much extra attention
+# to pay to the minority class (reoffenders)
+# Without this: model biased toward predicting 0 every time
+scale_pos_weight = count_not_reoffend / count_reoffend
+
+print(f"  Did NOT reoffend: {count_not_reoffend}")
+print(f"  DID reoffend:     {count_reoffend}")
+print(f"  scale_pos_weight: {scale_pos_weight:.2f}")
+
