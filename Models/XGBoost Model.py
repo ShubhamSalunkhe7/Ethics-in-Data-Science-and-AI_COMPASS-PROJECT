@@ -145,3 +145,24 @@ print(f"  Training complete!")
 print(f"  Trees built: {model.n_estimators}")
 print(f"  Each tree max depth: {model.max_depth}")
 print(f"  Learning rate: {model.learning_rate}")
+
+
+
+# SECTION 7 - Cross Validation
+# _______________________________________________________
+
+print("\n[STEP 6] Running 5-fold cross validation...")
+
+cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=RANDOM_SEED)
+
+cv_accuracy = cross_val_score(model, X_train, y_train,
+                               cv=cv, scoring='accuracy')
+cv_auc      = cross_val_score(model, X_train, y_train,
+                               cv=cv, scoring='roc_auc')
+cv_f1       = cross_val_score(model, X_train, y_train,
+                               cv=cv, scoring='f1')
+
+print(f"  CV Accuracy: {cv_accuracy.mean():.4f} ± {cv_accuracy.std():.4f}")
+print(f"  CV AUC-ROC:  {cv_auc.mean():.4f} ± {cv_auc.std():.4f}")
+print(f"  CV F1 Score: {cv_f1.mean():.4f} ± {cv_f1.std():.4f}")
+
