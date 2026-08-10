@@ -218,3 +218,27 @@ print(f"\n  Best accuracy: {winner} ({best_acc:.4f})")
 
 
 
+# SECTION 10 - Feature Importance
+# _______________________________________________________
+
+print("\n[STEP 9] Feature importance...")
+
+# XGBoost calculates feature importance differently to Random Forest
+# It measures: how much did each feature REDUCE errors
+# across all 300 trees combined?
+
+importance_df = pd.DataFrame({
+    'Feature':    FEATURES,
+    'Importance': model.feature_importances_.round(4)
+}).sort_values('Importance', ascending=False)
+
+print(f"\n  {'Rank':<6} {'Feature':<20} {'Importance':>12} {'Bar'}")
+print(f"  {'-'*55}")
+for rank, (_, row) in enumerate(importance_df.iterrows(), 1):
+    bar = '█' * int(row['Importance'] * 50)
+    print(f"  {rank:<6} {row['Feature']:<20} {row['Importance']:>12.4f}  {bar}")
+
+print(f"\n  Most important: {importance_df.iloc[0]['Feature']}")
+print(f"  This is the feature XGBoost used most often")
+print(f"  to reduce prediction errors across 300 trees")
+
