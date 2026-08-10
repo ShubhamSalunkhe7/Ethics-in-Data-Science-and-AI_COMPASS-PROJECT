@@ -397,3 +397,34 @@ plt.savefig('xgboost_results.png', dpi=150, bbox_inches='tight')
 plt.show()
 print("  Chart saved as: xgboost_results.png")
 
+
+
+# SECTION 14 - Final Summary
+# _______________________________________________________
+
+print("\n" + "=" * 55)
+print("  XGBOOST — FINAL SUMMARY")
+print("=" * 55)
+print(f"\n  Model:         XGBoost (300 gradient-boosted trees)")
+print(f"  Learning rate: 0.05 (slow and precise)")
+print(f"  Dataset:       COMPAS (5,278 defendants)")
+print(f"\n  PERFORMANCE — ALL THREE MODELS:")
+print(f"  {'Metric':<12} {'XGBoost':>10} {'Rand.Forest':>12} {'Log.Reg':>10}")
+print(f"  {'-'*44}")
+print(f"  {'Accuracy':<12} {accuracy:>10.4f} {RF_ACCURACY:>12.4f} {LR_ACCURACY:>10.4f}")
+print(f"  {'AUC-ROC':<12} {auc:>10.4f} {RF_AUC:>12.4f} {LR_AUC:>10.4f}")
+print(f"  {'F1 Score':<12} {f1:>10.4f} {RF_F1:>12.4f} {LR_F1:>10.4f}")
+print(f"\n  FAIRNESS:")
+print(f"  FPR Black:     {fpr_black:.4f}")
+print(f"  FPR White:     {fpr_white:.4f}")
+print(f"  FPR Ratio:     {fpr_ratio:.2f}x  (target: 1.00x)")
+print(f"  DPD:           {dpd:.4f}  (target: < 0.05)")
+print(f"  EOD:           {eod:.4f}  (target: < 0.05)")
+print(f"\n  TOP FEATURE:   {importance_df.iloc[0]['Feature']}")
+print(f"\n  KEY DISSERTATION INSIGHT:")
+print(f"  XGBoost is the most accurate model")
+print(f"  But fairness metrics are similar to simpler models")
+print(f"  → Accuracy and fairness are NOT the same thing")
+print(f"  → More complex ≠ more fair")
+print("=" * 55)
+
