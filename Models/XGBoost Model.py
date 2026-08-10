@@ -290,3 +290,34 @@ print(f"\n  Demographic Parity Difference: {dpd:.4f}  (target: < 0.05)")
 print(f"  Equalised Odds Difference:     {eod:.4f}  (target: < 0.05)")
 print(f"  FPR Ratio (Black/White):       {fpr_ratio:.2f}x  (target: 1.00x)")
 
+
+# SECTION 12 - Boosting Learning Curve
+# _______________________________________________________
+
+print("\n[STEP 11] Generating learning curve...")
+
+# This shows how XGBoost improves as it adds more trees
+# Demonstrates the boosting concept visually
+
+train_scores = []
+test_scores  = []
+tree_counts  = list(range(10, 310, 10))
+
+for n in tree_counts:
+    temp = XGBClassifier(
+        n_estimators=n,
+        max_depth=6,
+        learning_rate=0.05,
+        subsample=0.8,
+        colsample_bytree=0.8,
+        scale_pos_weight=scale_pos_weight,
+        eval_metric='logloss',
+        random_state=RANDOM_SEED,
+        verbosity=0
+    )
+    temp.fit(X_train, y_train)
+    train_scores.append(accuracy_score(y_train, temp.predict(X_train)))
+    test_scores.append(accuracy_score(y_test,  temp.predict(X_test)))
+
+print("  Learning curve calculated")
+
