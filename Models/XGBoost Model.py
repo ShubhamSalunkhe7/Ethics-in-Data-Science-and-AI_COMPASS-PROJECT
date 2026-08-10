@@ -321,3 +321,79 @@ for n in tree_counts:
 
 print("  Learning curve calculated")
 
+
+
+# SECTION 13 - Visualisations
+# _______________________________________________________
+
+print("\n[STEP 12] Creating charts...")
+
+fig, axes = plt.subplots(2, 2, figsize=(12, 10))
+fig.suptitle('XGBoost (Gradient Boosting) — COMPAS Fairness Audit',
+             fontsize=14, fontweight='bold')
+
+# Chart 1 — Confusion Matrix
+cm = confusion_matrix(y_test, y_pred)
+sns.heatmap(cm, annot=True, fmt='d', cmap='Oranges',
+            xticklabels=['Predicted\nNo Reoffend', 'Predicted\nReoffend'],
+            yticklabels=['Actual\nNo Reoffend', 'Actual\nReoffend'],
+            ax=axes[0, 0])
+axes[0, 0].set_title('Confusion Matrix', fontweight='bold')
+
+# Chart 2 — Boosting Learning Curve
+axes[0, 1].plot(tree_counts, train_scores,
+                label='Training Accuracy', color='#1F3864', linewidth=2)
+axes[0, 1].plot(tree_counts, test_scores,
+                label='Test Accuracy', color='#C00000', linewidth=2)
+axes[0, 1].set_xlabel('Number of Trees')
+axes[0, 1].set_ylabel('Accuracy')
+axes[0, 1].set_title('Boosting Learning Curve\n'
+                     '(How accuracy improves with more trees)',
+                     fontweight='bold')
+axes[0, 1].legend()
+axes[0, 1].grid(alpha=0.3)
+
+# Chart 3 — Feature Importance
+colors_fi = ['#C00000', '#1F3864', '#2E75B6', '#BDD7EE']
+axes[1, 0].barh(importance_df['Feature'],
+                importance_df['Importance'],
+                color=colors_fi, alpha=0.85, edgecolor='white')
+axes[1, 0].set_xlabel('Importance Score')
+axes[1, 0].set_title('XGBoost Feature Importance',fontweight='bold')
+for i, v in enumerate(importance_df['Importance']):
+    axes[1, 0].text(v + 0.002, i, f'{v:.4f}', va='center', fontsize=9)
+
+# Chart 4 — All Three Models Compared
+metrics   = ['Accuracy', 'AUC-ROC', 'F1 Score']
+xgb_vals  = [accuracy, auc, f1]
+rf_vals   = [RF_ACCURACY, RF_AUC, RF_F1]
+lr_vals   = [LR_ACCURACY, LR_AUC, LR_F1]
+x = np.arange(len(metrics))
+w = 0.25
+
+b1 = axes[1, 1].bar(x - w,   lr_vals,  w, label='Logistic Regression',
+                    color='#BDD7EE', alpha=0.9, edgecolor='white')
+b2 = axes[1, 1].bar(x,       rf_vals,  w, label='Random Forest',
+                    color='#2E75B6', alpha=0.9, edgecolor='white')
+b3 = axes[1, 1].bar(x + w,   xgb_vals, w, label='XGBoost',
+                    color='#1F3864', alpha=0.9, edgecolor='white')
+
+for bars in [b1, b2, b3]:
+    for bar in bars:
+        axes[1, 1].text(bar.get_x() + bar.get_width()/2,
+                        bar.get_height() + 0.003,
+                        f'{bar.get_height():.3f}',
+                        ha='center', va='bottom', fontsize=7)
+
+axes[1, 1].set_xticks(x)
+axes[1, 1].set_xticklabels(metrics)
+axes[1, 1].set_ylim(0.5, 0.85)
+axes[1, 1].set_ylabel('Score')
+axes[1, 1].set_title('All Three Models Compared', fontweight='bold')
+axes[1, 1].legend(fontsize=8)
+
+plt.tight_layout()
+plt.savefig('xgboost_results.png', dpi=150, bbox_inches='tight')
+plt.show()
+print("  Chart saved as: xgboost_results.png")
+
