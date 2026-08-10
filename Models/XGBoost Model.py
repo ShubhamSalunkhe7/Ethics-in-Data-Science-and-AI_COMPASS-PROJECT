@@ -166,3 +166,23 @@ print(f"  CV Accuracy: {cv_accuracy.mean():.4f} ± {cv_accuracy.std():.4f}")
 print(f"  CV AUC-ROC:  {cv_auc.mean():.4f} ± {cv_auc.std():.4f}")
 print(f"  CV F1 Score: {cv_f1.mean():.4f} ± {cv_f1.std():.4f}")
 
+
+
+
+# SECTION 8 - Make Predictions
+# _______________________________________________________
+
+print("\n[STEP 7] Making predictions...")
+
+# y_pred = final 0 or 1 decision
+# This is the SUM of all 300 trees combined
+
+# y_prob = probability score between 0.0 and 1.0
+# Higher score = model more confident this person will reoffend
+
+y_pred = model.predict(X_test)
+y_prob = model.predict_proba(X_test)[:, 1]
+
+print(f"  Predictions made for {len(y_pred)} defendants")
+print(f"  Predicted high-risk: {y_pred.sum()} ({y_pred.mean():.1%})")
+print(f"  Actual high-risk:    {y_test.sum()} ({y_test.mean():.1%})")
