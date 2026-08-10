@@ -186,3 +186,35 @@ y_prob = model.predict_proba(X_test)[:, 1]
 print(f"  Predictions made for {len(y_pred)} defendants")
 print(f"  Predicted high-risk: {y_pred.sum()} ({y_pred.mean():.1%})")
 print(f"  Actual high-risk:    {y_test.sum()} ({y_test.mean():.1%})")
+
+
+
+# SECTION 9 - Overall Performance
+# _______________________________________________________
+
+print("\n[STEP 8] Measuring performance...")
+
+accuracy = accuracy_score(y_test, y_pred)
+auc      = roc_auc_score(y_test, y_prob)
+f1       = f1_score(y_test, y_pred)
+
+# Previous model scores for comparison
+LR_ACCURACY = 0.683
+LR_AUC      = 0.742
+LR_F1       = 0.648
+RF_ACCURACY = 0.667
+RF_AUC      = 0.737
+RF_F1       = 0.627
+
+print(f"\n  {'Metric':<12} {'XGBoost':>12} {'Rand.Forest':>12} {'Log.Reg':>12}")
+print(f"  {'-'*48}")
+print(f"  {'Accuracy':<12} {accuracy:>12.4f} {RF_ACCURACY:>12.4f} {LR_ACCURACY:>12.4f}")
+print(f"  {'AUC-ROC':<12} {auc:>12.4f} {RF_AUC:>12.4f} {LR_AUC:>12.4f}")
+print(f"  {'F1 Score':<12} {f1:>12.4f} {RF_F1:>12.4f} {LR_F1:>12.4f}")
+
+best_acc = max(accuracy, RF_ACCURACY, LR_ACCURACY)
+winner   = 'XGBoost' if accuracy == best_acc else ('RF' if RF_ACCURACY == best_acc else 'LR')
+print(f"\n  Best accuracy: {winner} ({best_acc:.4f})")
+
+
+
