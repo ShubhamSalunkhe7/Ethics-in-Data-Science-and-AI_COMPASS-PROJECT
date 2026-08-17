@@ -66,3 +66,25 @@ print(f"  X shape:  {X.shape}")
 
 
 
+# SECTION 4 - Train/Test Split
+# _______________________________________________________
+
+print("\n[STEP 3] Splitting data (80% train, 20% test)...")
+
+# Same random_state=42 as ALL other models
+# This ensures we test on IDENTICAL 1,056 defendants
+# across all four models - the only fair comparison
+
+X_train, X_test, y_train, y_test, r_train, r_test = train_test_split(
+    X, y, r,
+    test_size=0.2,
+    random_state=RANDOM_SEED,
+    stratify=y
+)
+
+print(f"  Training rows: {len(X_train)}")
+print(f"  Testing rows:  {len(X_test)}")
+
+
+
+
