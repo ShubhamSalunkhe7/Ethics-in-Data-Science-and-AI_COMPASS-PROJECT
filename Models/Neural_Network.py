@@ -26,3 +26,19 @@ print("  COMPAS Fairness Audit")
 print("=" * 55)
 
 
+# SECTION 2 - Load Data
+# _______________________________________________________
+
+print("\n[STEP 1] Loading data...")
+
+from pathlib import Path
+
+project_folder = Path(__file__).resolve().parent.parent
+csv_file = project_folder / "Dataset" / "compas_cleaned.csv"
+
+df = pd.read_csv(csv_file)
+
+print(f"  Total rows: {len(df)}")
+print(f"  Recidivism rate: {df['two_year_recid'].mean():.1%}")
+
+
