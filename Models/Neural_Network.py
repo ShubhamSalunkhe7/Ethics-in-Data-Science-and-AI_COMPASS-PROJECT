@@ -88,3 +88,37 @@ print(f"  Testing rows:  {len(X_test)}")
 
 
 
+# SECTION 5 - Scale Features (ESSENTIAL for Neural Networks)
+# __________________________________________________________
+
+print("\n[STEP 4] Scaling features (REQUIRED for neural networks)...")
+
+# It's critical to scale data when working with Neural Networks 
+# because unlike Tree Based Models (XGBoost / Random Forest) you don't need to worry about scale in a threshold based way 
+# but instead Neural Network uses WEIGHTS to multiply the values of your features. 
+# If your age is 25 and prior is 3 they will have significantly different weightings and learning will fail. 
+#
+# StandardScaler converts every feature so that:
+# Mean = 0 and Standard Deviation = 1
+#
+# Before Scaling: age = 25, priors = 3 
+# After scaling: age = 0.12, priors = -0.31
+# Both now exist at approximately the same low scale as one another — allowing proper weighting to occur
+#
+# RULE: 
+# ALWAYS fit the scaler to your training data alone 
+# and then apply this trained scaler to ALL training data AND test data 
+# Using the scaler on Test Data would allow "Cheating" 
+#The Model has viewed Information from Future
+
+scaler = StandardScaler()
+X_train_scaled = scaler.fit_transform(X_train)
+X_test_scaled  = scaler.transform(X_test)
+
+print(f"  Scaling complete")
+print(f"  Age BEFORE scaling — mean: {X_train['age'].mean():.2f}")
+print(f"  Age AFTER  scaling — mean: {X_train_scaled[:,0].mean():.6f} (should be ~0)")
+print(f"  Age AFTER  scaling — std:  {X_train_scaled[:,0].std():.6f}  (should be ~1)")
+
+
+
