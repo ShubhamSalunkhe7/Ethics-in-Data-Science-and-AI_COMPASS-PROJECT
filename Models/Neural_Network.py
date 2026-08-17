@@ -42,3 +42,27 @@ print(f"  Total rows: {len(df)}")
 print(f"  Recidivism rate: {df['two_year_recid'].mean():.1%}")
 
 
+
+# SECTION 3 - Features and Target
+# _______________________________________________________
+
+print("\n[STEP 2] Selecting features...")
+
+# Same 4 features as ALL other models
+# This is absolutely critical for fair comparison
+# If you change features here, you cannot know whether
+# any performance difference is due to the model or the data
+
+FEATURES  = ['age', 'priors_count', 'sex_male', 'charge_felony']
+TARGET    = 'two_year_recid'
+PROTECTED = 'race_binary'
+
+X = df[FEATURES]
+y = df[TARGET]
+r = df[PROTECTED]
+
+print(f"  Features: {FEATURES}")
+print(f"  X shape:  {X.shape}")
+
+
+
