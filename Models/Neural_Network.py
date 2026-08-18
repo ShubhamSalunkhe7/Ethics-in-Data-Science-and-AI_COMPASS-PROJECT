@@ -211,3 +211,36 @@ print(f"  Improvement:    {((loss_history[0]-loss_history[-1])/loss_history[0])*
 
 
 
+# SECTION 8 - Cross Validation
+# _______________________________________________________
+
+print("\n[STEP 7] Running 5-fold cross validation...")
+
+# We use a fresh model for CV (not the trained one)
+# to avoid data leakage from early stopping
+cv_model = MLPClassifier(
+    hidden_layer_sizes=(128, 64, 32),
+    activation='relu',
+    solver='adam',
+    alpha=0.001,
+    max_iter=500,
+    early_stopping=True,
+    random_state=RANDOM_SEED
+)
+
+cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=RANDOM_SEED)
+
+cv_accuracy = cross_val_score(cv_model, X_train_scaled, y_train,
+                               cv=cv, scoring='accuracy')
+cv_auc      = cross_val_score(cv_model, X_train_scaled, y_train,
+                               cv=cv, scoring='roc_auc')
+cv_f1       = cross_val_score(cv_model, X_train_scaled, y_train,
+                               cv=cv, scoring='f1')
+
+print(f"  CV Accuracy: {cv_accuracy.mean():.4f} ± {cv_accuracy.std():.4f}")
+print(f"  CV AUC-ROC:  {cv_auc.mean():.4f} ± {cv_auc.std():.4f}")
+print(f"  CV F1 Score: {cv_f1.mean():.4f} ± {cv_f1.std():.4f}")
+
+
+
+
