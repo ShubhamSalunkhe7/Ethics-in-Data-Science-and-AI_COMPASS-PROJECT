@@ -267,3 +267,36 @@ print(f"  Predictions made for {len(y_pred)} defendants")
 print(f"  Predicted high-risk: {y_pred.sum()} ({y_pred.mean():.1%})")
 print(f"  Actual high-risk:    {y_test.sum()} ({y_test.mean():.1%})")
 
+
+# SECTION 10 - Measure Performance
+# _______________________________________________________
+
+print("\n[STEP 9] Measuring performance...")
+
+accuracy = accuracy_score(y_test, y_pred)
+auc      = roc_auc_score(y_test, y_prob)
+f1       = f1_score(y_test, y_pred)
+
+# All previous model scores for comparison
+LR_ACCURACY  = 0.683;  LR_AUC  = 0.742;  LR_F1  = 0.648
+RF_ACCURACY  = 0.667;  RF_AUC  = 0.737;  RF_F1  = 0.627
+XGB_ACCURACY = 0.670;  XGB_AUC = 0.730;  XGB_F1 = 0.641
+
+print(f"\n  {'Metric':<12} {'MLP':>10} {'XGBoost':>10} "
+      f"{'Rnd Forest':>12} {'LR Base':>10}")
+print(f"  {'-'*56}")
+print(f"  {'Accuracy':<12} {accuracy:>10.4f} {XGB_ACCURACY:>10.4f} "
+      f"{RF_ACCURACY:>12.4f} {LR_ACCURACY:>10.4f}")
+print(f"  {'AUC-ROC':<12} {auc:>10.4f} {XGB_AUC:>10.4f} "
+      f"{RF_AUC:>12.4f} {LR_AUC:>10.4f}")
+print(f"  {'F1 Score':<12} {f1:>10.4f} {XGB_F1:>10.4f} "
+      f"{RF_F1:>12.4f} {LR_F1:>10.4f}")
+
+all_accs = [accuracy, XGB_ACCURACY, RF_ACCURACY, LR_ACCURACY]
+all_names = ['MLP', 'XGBoost', 'Random Forest', 'LR']
+best_idx  = all_accs.index(max(all_accs))
+print(f"\n  Best accuracy: {all_names[best_idx]} ({max(all_accs):.4f})")
+print(f"  NOTE: Tree models often beat neural networks")
+print(f"  on small tabular datasets — this is expected")
+
+
