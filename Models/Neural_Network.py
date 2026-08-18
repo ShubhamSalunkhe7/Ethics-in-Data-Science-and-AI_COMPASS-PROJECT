@@ -354,3 +354,68 @@ for rank, (_, row) in enumerate(importance_df.iterrows(), 1):
 print(f"\n  Top feature: {importance_df.iloc[0]['Feature']}")
 print(f"  This should match Random Forest and XGBoost findings")
 
+
+
+# SECTION 12 - Racial Fairness Analysis
+# _______________________________________________________
+
+print("\n[STEP 11] Racial fairness analysis...")
+
+mask_black = (r_test == 1)
+mask_white = (r_test == 0)
+
+# Accuracy and F1 per race
+acc_black = accuracy_score(y_test[mask_black], y_pred[mask_black])
+acc_white = accuracy_score(y_test[mask_white], y_pred[mask_white])
+f1_black  = f1_score(y_test[mask_black], y_pred[mask_black])
+f1_white  = f1_score(y_test[mask_white], y_pred[mask_white])
+
+# False Positive Rate per race
+fp_b = ((y_pred[mask_black]==1) & (y_test.values[mask_black]==0)).sum()
+tn_b = ((y_pred[mask_black]==0) & (y_test.values[mask_black]==0)).sum()
+fp_w = ((y_pred[mask_white]==1) & (y_test.values[mask_white]==0)).sum()
+tn_w = ((y_pred[mask_white]==0) & (y_test.values[mask_white]==0)).sum()
+fpr_black = fp_b / (fp_b + tn_b) if (fp_b + tn_b) > 0 else 0
+fpr_white = fp_w / (fp_w + tn_w) if (fp_w + tn_w) > 0 else 0
+
+# True Positive Rate per race
+tp_b = ((y_pred[mask_black]==1) & (y_test.values[mask_black]==1)).sum()
+fn_b = ((y_pred[mask_black]==0) & (y_test.values[mask_black]==1)).sum()
+tp_w = ((y_pred[mask_white]==1) & (y_test.values[mask_white]==1)).sum()
+fn_w = ((y_pred[mask_white]==0) & (y_test.values[mask_white]==1)).sum()
+tpr_black = tp_b / (tp_b + fn_b) if (tp_b + fn_b) > 0 else 0
+tpr_white = tp_w / (tp_w + fn_w) if (tp_w + fn_w) > 0 else 0
+
+# Fairness metrics
+rate_black = y_pred[mask_black].mean()
+rate_white = y_pred[mask_white].mean()
+dpd        = rate_black - rate_white
+eod        = max(abs(tpr_black - tpr_white), abs(fpr_black - fpr_white))
+fpr_ratio  = fpr_black / fpr_white if fpr_white > 0 else 0
+
+# Predictive parity
+tp_b_ppv = ((y_pred[mask_black]==1) & (y_test.values[mask_black]==1)).sum()
+pp_b     = (y_pred[mask_black]==1).sum()
+tp_w_ppv = ((y_pred[mask_white]==1) & (y_test.values[mask_white]==1)).sum()
+pp_w     = (y_pred[mask_white]==1).sum()
+ppv_b    = tp_b_ppv / pp_b if pp_b > 0 else 0
+ppv_w    = tp_w_ppv / pp_w if pp_w > 0 else 0
+pp_gap   = ppv_b - ppv_w
+
+print(f"\n  {'Metric':<35} {'Black':>10} {'White':>10} {'Gap':>10}")
+print(f"  {'-'*65}")
+print(f"  {'Accuracy':<35} {acc_black:>10.4f} {acc_white:>10.4f} "
+      f"{acc_black-acc_white:>+10.4f}")
+print(f"  {'F1 Score':<35} {f1_black:>10.4f} {f1_white:>10.4f} "
+      f"{f1_black-f1_white:>+10.4f}")
+print(f"  {'False Positive Rate':<35} {fpr_black:>10.4f} {fpr_white:>10.4f} "
+      f"{fpr_black-fpr_white:>+10.4f}")
+print(f"  {'True Positive Rate':<35} {tpr_black:>10.4f} {tpr_white:>10.4f} "
+      f"{tpr_black-tpr_white:>+10.4f}")
+print(f"  {'High-Risk Prediction Rate':<35} {rate_black:>10.4f} {rate_white:>10.4f}")
+print(f"\n  Demographic Parity Difference: {dpd:.4f}  (target: < 0.05)")
+print(f"  Equalised Odds Difference:     {eod:.4f}  (target: < 0.05)")
+print(f"  FPR Ratio (Black/White):       {fpr_ratio:.2f}x  (target: 1.00x)")
+print(f"  Predictive Parity Gap:         {pp_gap:.4f}  (calibration)")
+
+
