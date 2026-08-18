@@ -244,3 +244,26 @@ print(f"  CV F1 Score: {cv_f1.mean():.4f} ± {cv_f1.std():.4f}")
 
 
 
+
+# SECTION 9 - Make Predictions
+# _______________________________________________________
+
+print("\n[STEP 8] Making predictions...")
+
+# The neural network produces a probability for each person
+# by passing their scaled features through all three layers
+# of 128 + 64 + 32 neurons and applying weights and ReLU
+# at each step, finally producing a number between 0 and 1
+#
+# y_pred rounds that probability to 0 or 1
+# Default threshold is 0.5:
+# probability >= 0.5 → predict reoffend (1)
+# probability <  0.5 → predict no reoffend (0)
+
+y_pred = model.predict(X_test_scaled)
+y_prob = model.predict_proba(X_test_scaled)[:, 1]
+
+print(f"  Predictions made for {len(y_pred)} defendants")
+print(f"  Predicted high-risk: {y_pred.sum()} ({y_pred.mean():.1%})")
+print(f"  Actual high-risk:    {y_test.sum()} ({y_test.mean():.1%})")
+
