@@ -300,3 +300,57 @@ print(f"  NOTE: Tree models often beat neural networks")
 print(f"  on small tabular datasets — this is expected")
 
 
+
+# SECTION 11 - Feature Importance
+# (Permutation Method — different from tree models)
+# _______________________________________________________
+
+print("\n[STEP 10] Feature importance (permutation method)...")
+
+# MLPClassifier has NO built-in feature_importances_
+# Unlike Random Forest and XGBoost which track how often
+# each feature was used in tree splits,
+# the neural network just has billions of tiny weights —
+# no single weight maps to a single feature
+#
+# PERMUTATION IMPORTANCE EXPLAINED:
+# Step 1: Record the model's accuracy on test data
+# Step 2: Randomly SHUFFLE one feature column
+#         (this breaks any real pattern in that feature)
+# Step 3: Measure the accuracy drop
+# Step 4: Large drop = that feature was very important
+# Step 5: Repeat for each feature
+#
+# Example:
+# Normal accuracy:            0.683
+# After shuffling age:        0.641  → drop of 0.042 = age is important
+# After shuffling sex_male:   0.681  → drop of 0.002 = sex is less important
+
+print("  Running permutation importance (10 repeats per feature)...")
+print("  This shuffles each feature 10 times and measures accuracy drop...")
+
+perm = permutation_importance(
+    model,
+    X_test_scaled,
+    y_test,
+    n_repeats=10,
+    random_state=RANDOM_SEED,
+    scoring='accuracy'
+)
+
+importance_df = pd.DataFrame({
+    'Feature':    FEATURES,
+    'Importance': perm.importances_mean.round(4),
+    'Std':        perm.importances_std.round(4)
+}).sort_values('Importance', ascending=False)
+
+print(f"\n  {'Rank':<6} {'Feature':<20} {'Importance':>12} {'±Std':>8}  Bar")
+print(f"  {'-'*60}")
+for rank, (_, row) in enumerate(importance_df.iterrows(), 1):
+    bar = '█' * max(0, int(row['Importance'] * 300))
+    print(f"  {rank:<6} {row['Feature']:<20} {row['Importance']:>12.4f} "
+          f"{row['Std']:>8.4f}  {bar}")
+
+print(f"\n  Top feature: {importance_df.iloc[0]['Feature']}")
+print(f"  This should match Random Forest and XGBoost findings")
+
