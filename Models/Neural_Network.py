@@ -193,3 +193,21 @@ print(f"  Total layers:  {len(model.hidden_layer_sizes) + 2} "
 print(f"  Early stopping: {'Yes — stopped early' if model.n_iter_ < 500 else 'No — ran all 500'}")
 
 
+# SECTION 7 - Understand What Happened During Training
+# _______________________________________________________
+
+print("\n[STEP 6] Training loss curve...")
+
+# The loss curve shows how the network improved over time
+# Loss = how wrong the model is (lower = better)
+# It should go DOWN as training progresses
+# If it goes UP at the end, the model was overfitting
+
+loss_history = model.loss_curve_
+print(f"  Starting loss:  {loss_history[0]:.4f}  (should be high)")
+print(f"  Final loss:     {loss_history[-1]:.4f}  (should be lower)")
+print(f"  Improvement:    {((loss_history[0]-loss_history[-1])/loss_history[0])*100:.1f}%")
+
+
+
+
