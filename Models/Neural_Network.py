@@ -448,3 +448,82 @@ print(f"""
   Changing the algorithm does NOT fix the problem.
 """)
 
+
+# SECTION 14 - Training Loss Curve Visualisation
+# _______________________________________________________
+
+print("\n[STEP 13] Creating visualisations...")
+
+fig, axes = plt.subplots(2, 2, figsize=(12, 10))
+fig.suptitle('Neural Network (MLPClassifier) — COMPAS Fairness Audit',
+             fontsize=14, fontweight='bold')
+
+# Chart 1 — Training Loss Curve
+axes[0, 0].plot(model.loss_curve_, color='#1F3864', linewidth=2,
+                label='Training Loss')
+if hasattr(model, 'validation_scores_') and model.validation_scores_:
+    axes[0, 0].plot(model.validation_scores_, color='#C00000',
+                    linewidth=2, linestyle='--', label='Validation Score')
+axes[0, 0].set_xlabel('Epoch (Training Round)')
+axes[0, 0].set_ylabel('Loss (lower = better)')
+axes[0, 0].set_title('Training Loss Curve\n(How the network improved over time)',
+                     fontweight='bold')
+axes[0, 0].legend()
+axes[0, 0].grid(True, alpha=0.3)
+
+# Chart 2 — Confusion Matrix
+cm = confusion_matrix(y_test, y_pred)
+sns.heatmap(cm, annot=True, fmt='d', cmap='Purples',
+            xticklabels=['Predicted\nNo Reoffend', 'Predicted\nReoffend'],
+            yticklabels=['Actual\nNo Reoffend', 'Actual\nReoffend'],
+            ax=axes[0, 1])
+axes[0, 1].set_title('Confusion Matrix', fontweight='bold')
+
+# Chart 3 — Permutation Feature Importance
+colors_fi = ['#1F3864', '#2E75B6', '#4472C4', '#BDD7EE']
+axes[1, 0].barh(importance_df['Feature'],
+                importance_df['Importance'],
+                xerr=importance_df['Std'],
+                color=colors_fi, alpha=0.85,
+                edgecolor='white', capsize=4)
+axes[1, 0].set_xlabel('Accuracy Drop When Feature Shuffled')
+axes[1, 0].set_title('Permutation Feature Importance\n'
+                     '(Error bars show variability across 10 repeats)',
+                     fontweight='bold')
+axes[1, 0].axvline(x=0, color='black', linewidth=0.8)
+
+# Chart 4 — All 4 Models FPR Comparison
+model_names = ['LR\n(Baseline)', 'Random\nForest', 'XGBoost', 'Neural\nNetwork']
+fpr_blacks  = [0.400, 0.360, 0.380, fpr_black]
+fpr_whites  = [0.220, 0.200, 0.215, fpr_white]
+x           = np.arange(len(model_names))
+w           = 0.35
+
+bars_b = axes[1, 1].bar(x - w/2, fpr_blacks, w,
+                         label='African-American (Black)',
+                         color='#C00000', alpha=0.85, edgecolor='white')
+bars_w = axes[1, 1].bar(x + w/2, fpr_whites, w,
+                         label='Caucasian (White)',
+                         color='#2E75B6', alpha=0.85, edgecolor='white')
+for bar in list(bars_b) + list(bars_w):
+    axes[1, 1].text(bar.get_x() + bar.get_width()/2,
+                    bar.get_height() + 0.006,
+                    f'{bar.get_height():.3f}',
+                    ha='center', va='bottom', fontsize=8)
+axes[1, 1].axhline(y=0.05, color='green', linestyle='--',
+                   linewidth=1.2, label='Fair threshold (0.05)')
+axes[1, 1].set_xticks(x)
+axes[1, 1].set_xticklabels(model_names)
+axes[1, 1].set_ylabel('False Positive Rate')
+axes[1, 1].set_title('FPR by Race — ALL 4 MODELS\n'
+                     '(Key finding: bias is consistent across all architectures)',
+                     fontweight='bold')
+axes[1, 1].legend(fontsize=7)
+axes[1, 1].set_ylim(0, 0.6)
+
+plt.tight_layout()
+plt.savefig('neural_network_results.png', dpi=150, bbox_inches='tight')
+plt.show()
+print("  Chart saved as: neural_network_results.png")
+
+
