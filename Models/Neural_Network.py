@@ -121,4 +121,75 @@ print(f"  Age AFTER  scaling — mean: {X_train_scaled[:,0].mean():.6f} (should 
 print(f"  Age AFTER  scaling — std:  {X_train_scaled[:,0].std():.6f}  (should be ~1)")
 
 
+# SECTION 6 - Build and Train the Neural Network
+# _______________________________________________________
+
+print("\n[STEP 5] Building and training Neural Network...")
+print("  Architecture: 4 inputs → 128 → 64 → 32 → 1 output")
+
+# UNDERSTANDING THE ARCHITECTURE:
+#
+# hidden_layer_sizes = (128, 64, 32) 
+# Creates 3 hidden layers:
+#   Layer 1: 128 neurons  - finds simple patterns
+#   Layer 2: 64 neurons   -  finds more complicated patterns
+#   Layer 3: 32 neurons  -  which will help find even more complex patterns
+#
+# Think of it like this:
+# Layer 1 asks: "Is age young?"  "Are priors high?"
+# Layer 2 asks: "Young AND high priors?"
+# Layer 3 asks: "Young AND high priors AND felony charge?"
+# Output:        "High risk? Yes/No"
+#
+# activation='relu'
+# ReLU = Rectified Linear Unit
+# Simple rule:  Positive signal → keep the value, 
+#               Negative signal → change it to 0
+# It helps the neural network learn non-linear/complex patterns without becoming stuck.
+#
+# solver='adam'
+# Adam is the learning algorithm (optimiser)
+# It will adjust the networks weights so it makes less errors
+# it will also help regulate how fast your model learns (so its not too slow or too fast)
+# this can be thought of like a coach that is helping your network get better.
+#
+# alpha=0.001
+# Regularisation — adds a penalty for having large weights
+# Large weights = overfitting = bad on new data
+# Higher alpha = simpler model = less overfitting
+#
+# max_iter=500
+# The network processes all training data up to 500 times
+# Each full pass through the data is called an "epoch"
+# More epochs = more learning (up to a point)
+#
+# early_stopping=True
+# If the model stops improving on a validation set,
+# training stops automatically — prevents overfitting
+# No point training more if we are no longer getting better
+#
+# validation_fraction=0.1
+# 10% of training data is set aside just to monitor
+# whether the model is still improving
+
+model = MLPClassifier(
+    hidden_layer_sizes=(128, 64, 32),
+    activation='relu',
+    solver='adam',
+    alpha=0.001,
+    learning_rate_init=0.001,
+    max_iter=500,
+    early_stopping=True,
+    validation_fraction=0.1,
+    random_state=RANDOM_SEED
+)
+
+model.fit(X_train_scaled, y_train)
+
+print(f"  Training complete!")
+print(f"  Actual epochs run: {model.n_iter_}  (out of max 500)")
+print(f"  Total layers:  {len(model.hidden_layer_sizes) + 2} "
+      f"(input + 3 hidden + output)")
+print(f"  Early stopping: {'Yes — stopped early' if model.n_iter_ < 500 else 'No — ran all 500'}")
+
 
