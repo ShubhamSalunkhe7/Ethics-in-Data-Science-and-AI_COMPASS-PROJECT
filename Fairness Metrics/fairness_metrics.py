@@ -31,6 +31,7 @@ print("=" * 60)
 # (same as in all other model files) 
 #_______________________________________________________________________
 
+
 print("\n[STEP 1] Loading and preparing data...")
 
 df = pd.read_csv("../Dataset/compas_cleaned.csv")
@@ -65,6 +66,7 @@ print(f"  White defendants in test: {mask_white.sum()}")
 
 # SECTION 3 — Train all four models
 #_______________________________________________________________________
+
 
 print("\n[STEP 2] Training all four models...")
 
@@ -124,7 +126,8 @@ print("\n  All predictions collected. Ready for fairness metrics.")
 # SECTION 4 — THE SEVEN FAIRNESS METRICS
 # Each one of these are separate functions and explained clearly
 
-# ────────────────────────────────────────────────────────────
+#_______________________________________________________________________
+
 # METRIC 1 — Demographic Parity Difference (DPD)
 
 # QUESTION: Are Black and White defendants being predicted
@@ -137,7 +140,8 @@ print("\n  All predictions collected. Ready for fairness metrics.")
 
 # TARGET: 0.00 (both groups predicted high-risk equally often)
 # FAIR if: |result| < 0.05
-# ────────────────────────────────────────────────────────────
+#_______________________________________________________________________
+
 def metric_1_dpd(y_pred, mask_black, mask_white):
     rate_black = y_pred[mask_black].mean()
     rate_white = y_pred[mask_white].mean()
@@ -145,7 +149,7 @@ def metric_1_dpd(y_pred, mask_black, mask_white):
     return round(float(dpd), 4)
 
 
-# ────────────────────────────────────────────────────────────
+#_______________________________________________________________________
 # METRIC 2 — Equalised Odds Difference (EOD)
 #
 # QUESTION: When the model makes an error, does it make
@@ -157,7 +161,8 @@ def metric_1_dpd(y_pred, mask_black, mask_white):
 #
 # TARGET: 0.00
 # FAIR if: |result| < 0.05
-# ────────────────────────────────────────────────────────────
+#_______________________________________________________________________
+
 def metric_2_eod(y_test, y_pred, mask_black, mask_white):
     yt = y_test.values
 
@@ -183,7 +188,8 @@ def metric_2_eod(y_test, y_pred, mask_black, mask_white):
     return round(float(eod), 4)
 
 
-# ────────────────────────────────────────────────────────────
+#_______________________________________________________________________
+
 # METRIC 3 — Equal Opportunity Difference (EOpD)
 
 # QUESTION: Among people who WILL actually reoffend,
@@ -199,7 +205,8 @@ def metric_2_eod(y_test, y_pred, mask_black, mask_white):
 
 # TARGET: 0.00
 # FAIR if: |result| < 0.05
-# ────────────────────────────────────────────────────────────
+#_______________________________________________________________________
+
 def metric_3_eopd(y_test, y_pred, mask_black, mask_white):
     yt = y_test.values
 
@@ -214,7 +221,7 @@ def metric_3_eopd(y_test, y_pred, mask_black, mask_white):
     return round(float(tpr_b - tpr_w), 4)
 
 
-# ────────────────────────────────────────────────────────────
+#_______________________________________________________________________
 # METRIC 4 — Predictive Parity (PP Gap)
 
 # QUESTION: When the model says HIGH RISK, is it correct
@@ -230,7 +237,8 @@ def metric_3_eopd(y_test, y_pred, mask_black, mask_white):
 
 # TARGET: 0.00
 # FAIR if: |result| < 0.05
-# ────────────────────────────────────────────────────────────
+#_______________________________________________________________________
+
 def metric_4_pp(y_test, y_pred, mask_black, mask_white):
     yt = y_test.values
 
@@ -245,7 +253,7 @@ def metric_4_pp(y_test, y_pred, mask_black, mask_white):
     return round(float(ppv_b - ppv_w), 4)
 
 
-# ────────────────────────────────────────────────────────────
+#_______________________________________________________________________
 # METRIC 5 — Individual Fairness (IF Score)
 
 # QUESTION: Do similar individuals get similar predictions
@@ -260,7 +268,7 @@ def metric_4_pp(y_test, y_pred, mask_black, mask_white):
 # Score of 1.0 = perfect individual fairness
 # Score of 0.0 = completely individually unfair
 # TARGET: > 0.90
-# ────────────────────────────────────────────────────────────
+#_______________________________________________________________________
 def metric_5_individual_fairness(X_test, y_pred, k=5):
     X_arr = X_test.values
     y_arr = np.array(y_pred)
@@ -280,7 +288,8 @@ def metric_5_individual_fairness(X_test, y_pred, k=5):
     return round(float(np.mean(agreements)), 4)
 
 
-# ────────────────────────────────────────────────────────────
+#_______________________________________________________________________
+
 # METRIC 6 — Calibration Error Gap (CE Gap)
 #
 # QUESTION: Are the model's CONFIDENCE SCORES equally
@@ -299,7 +308,8 @@ Calculate Expected Calibration Error (ECE) separately for Black defendants and W
 # Large gap = model is more reliable for one group
 
 # TARGET: < 0.05
-# ────────────────────────────────────────────────────────────
+#_______________________________________________________________________
+
 def metric_6_calibration(y_test, y_prob, mask_black, mask_white,
                           n_bins=10):
     def ece(y_true_group, y_prob_group):
@@ -329,7 +339,8 @@ def metric_6_calibration(y_test, y_prob, mask_black, mask_white,
     return round(float(abs(ece_black - ece_white)), 4)
 
 
-# ────────────────────────────────────────────────────────────
+#_______________________________________________________________________
+
 # METRIC 7 — Counterfactual Fairness (CF Score)
 #
 # QUESTION: If we could magically change a defendant's race
@@ -346,7 +357,8 @@ Then we estimate how much the prediction would change.
 # The more this number scores, the more race is influencing predictions based upon proxy variables (i.e. prior crimes) which is known as PROXY DISCRIMINATION. 
 
 # TARGET: < 0.05 (no counterfactual effect)
-# ────────────────────────────────────────────────────────────
+#_______________________________________________________________________
+
 def metric_7_counterfactual(X_test, y_prob, mask_black, mask_white):
     black_idx  = np.where(mask_black)[0]
     if len(black_idx) == 0:
@@ -374,6 +386,7 @@ def metric_7_counterfactual(X_test, y_prob, mask_black, mask_white):
 
 # SECTION 5 — RUN ALL SEVEN METRICS ON ALL FOUR MODELS
 #_______________________________________________________________________
+
 
 print("\n[STEP 3] Computing all seven fairness metrics...")
 print("         (This may take 30-60 seconds for Individual Fairness)")
@@ -424,4 +437,39 @@ for model_name, preds in predictions.items():
         'Calibration':  cal,
         'Counterfact':  cf,
     })
+
+# SECTION 6 — SUMMARY TABLE (All 4 MODELS x All METRICS)
+#_______________________________________________________________________
+
+
+print("\n\n" + "=" * 75)
+print("  COMPLETE FAIRNESS METRICS TABLE")
+print("  (This is dissertation Table 4.3)")
+print("=" * 75)
+
+df_metrics = pd.DataFrame(all_results)
+
+print(f"\n  {'Model':<25} {'DPD':>7} {'EOD':>7} {'EOpD':>7} "
+      f"{'PP':>7} {'IF↑':>7} {'Cal':>7} {'CF':>7}")
+print(f"  {'Target':<25} {'<0.05':>7} {'<0.05':>7} {'<0.05':>7} "
+      f"{'<0.05':>7} {'>0.90':>7} {'<0.05':>7} {'<0.10':>7}")
+print(f"  {'-'*73}")
+
+for _, row in df_metrics.iterrows():
+    def flag(val, good_if_low=True, threshold=0.05):
+        if good_if_low:
+            return "✓" if abs(val) < threshold else "✗"
+        else:
+            return "✓" if val > threshold else "✗"
+
+    print(f"  {row['Model']:<25} "
+          f"{row['DPD']:>6.4f}{flag(row['DPD'])} "
+          f"{row['EOD']:>6.4f}{flag(row['EOD'])} "
+          f"{row['EOpD']:>6.4f}{flag(row['EOpD'])} "
+          f"{row['PP_Gap']:>6.4f}{flag(row['PP_Gap'])} "
+          f"{row['Indiv_Fair']:>6.4f}{flag(row['Indiv_Fair'],False,0.90)} "
+          f"{row['Calibration']:>6.4f}{flag(row['Calibration'])} "
+          f"{row['Counterfact']:>6.4f}{flag(row['Counterfact'],True,0.10)}")
+
+print(f"\n  ✓ = passes fairness threshold   ✗ = fails fairness threshold")
 
