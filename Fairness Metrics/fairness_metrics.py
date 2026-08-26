@@ -121,3 +121,253 @@ predictions = {
 
 print("\n  All predictions collected. Ready for fairness metrics.")
 
+# SECTION 4 — THE SEVEN FAIRNESS METRICS
+# Each one of these are separate functions and explained clearly
+
+# ────────────────────────────────────────────────────────────
+# METRIC 1 — Demographic Parity Difference (DPD)
+
+# QUESTION: Are Black and White defendants being predicted
+# as high-risk at the same RATE (percentage)?
+
+# CALCULATION:
+# 	% of Black defendants correctly classified as high risk
+#   	MINUS
+#	% of White defendants correctly classified as high-risk
+
+# TARGET: 0.00 (both groups predicted high-risk equally often)
+# FAIR if: |result| < 0.05
+# ────────────────────────────────────────────────────────────
+def metric_1_dpd(y_pred, mask_black, mask_white):
+    rate_black = y_pred[mask_black].mean()
+    rate_white = y_pred[mask_white].mean()
+    dpd = rate_black - rate_white
+    return round(float(dpd), 4)
+
+
+# ────────────────────────────────────────────────────────────
+# METRIC 2 — Equalised Odds Difference (EOD)
+#
+# QUESTION: When the model makes an error, does it make
+# the same TYPE of error at the same RATE for both groups?
+#
+# It calculates two metrics and compares the largest difference:
+#   1. False Positive Rate gap (wrongly labelled high-risk)
+#   2. True Positive Rate gap  (correctly caught reoffenders)
+#
+# TARGET: 0.00
+# FAIR if: |result| < 0.05
+# ────────────────────────────────────────────────────────────
+def metric_2_eod(y_test, y_pred, mask_black, mask_white):
+    yt = y_test.values
+
+	# True Positive Rate (how many reoffenders were caught)
+
+    tp_b = ((y_pred[mask_black]==1) & (yt[mask_black]==1)).sum()
+    fn_b = ((y_pred[mask_black]==0) & (yt[mask_black]==1)).sum()
+    tp_w = ((y_pred[mask_white]==1) & (yt[mask_white]==1)).sum()
+    fn_w = ((y_pred[mask_white]==0) & (yt[mask_white]==1)).sum()
+    tpr_b = tp_b / (tp_b + fn_b) if (tp_b + fn_b) > 0 else 0
+    tpr_w = tp_w / (tp_w + fn_w) if (tp_w + fn_w) > 0 else 0
+
+	# False Positive Rate (how many innocents wrongly labelled)
+    fp_b = ((y_pred[mask_black]==1) & (yt[mask_black]==0)).sum()
+    tn_b = ((y_pred[mask_black]==0) & (yt[mask_black]==0)).sum()
+    fp_w = ((y_pred[mask_white]==1) & (yt[mask_white]==0)).sum()
+    tn_w = ((y_pred[mask_white]==0) & (yt[mask_white]==0)).sum()
+    fpr_b = fp_b / (fp_b + tn_b) if (fp_b + tn_b) > 0 else 0
+    fpr_w = fp_w / (fp_w + tn_w) if (fp_w + tn_w) > 0 else 0
+
+    # Take the larger of the two gaps
+    eod = max(abs(tpr_b - tpr_w), abs(fpr_b - fpr_w))
+    return round(float(eod), 4)
+
+
+# ────────────────────────────────────────────────────────────
+# METRIC 3 — Equal Opportunity Difference (EOpD)
+
+# QUESTION: Among people who WILL actually reoffend,
+# does the model catch them at equal rates for both races?
+
+# Only calculates TRUE POSITIVE RATE (TPR):
+#   	TPR Black minus TPR White
+
+# A negative value means the model performs better at identifying White recidivists than black recidivists
+
+# White reoffenders than Black ones
+# A positive number means the opposite
+
+# TARGET: 0.00
+# FAIR if: |result| < 0.05
+# ────────────────────────────────────────────────────────────
+def metric_3_eopd(y_test, y_pred, mask_black, mask_white):
+    yt = y_test.values
+
+    tp_b = ((y_pred[mask_black]==1) & (yt[mask_black]==1)).sum()
+    fn_b = ((y_pred[mask_black]==0) & (yt[mask_black]==1)).sum()
+    tp_w = ((y_pred[mask_white]==1) & (yt[mask_white]==1)).sum()
+    fn_w = ((y_pred[mask_white]==0) & (yt[mask_white]==1)).sum()
+
+    tpr_b = tp_b / (tp_b + fn_b) if (tp_b + fn_b) > 0 else 0
+    tpr_w = tp_w / (tp_w + fn_w) if (tp_w + fn_w) > 0 else 0
+
+    return round(float(tpr_b - tpr_w), 4)
+
+
+# ────────────────────────────────────────────────────────────
+# METRIC 4 — Predictive Parity (PP Gap)
+
+# QUESTION: When the model says HIGH RISK, is it correct
+# at the same rate for both racial groups?
+
+# This measures PRECISION per group:
+#   PPV Black minus PPV White
+#   (PPV = Positive Predictive Value = Precision)
+
+# This is a calibration metric. COMPAS is particularly successful in terms of calibration.
+
+# This is the metric that produces the IMPOSSIBILITY THEOREM when combined with Metrics 1 and 2. 
+
+# TARGET: 0.00
+# FAIR if: |result| < 0.05
+# ────────────────────────────────────────────────────────────
+def metric_4_pp(y_test, y_pred, mask_black, mask_white):
+    yt = y_test.values
+
+    tp_b = ((y_pred[mask_black]==1) & (yt[mask_black]==1)).sum()
+    pp_b = (y_pred[mask_black] == 1).sum()
+    tp_w = ((y_pred[mask_white]==1) & (yt[mask_white]==1)).sum()
+    pp_w = (y_pred[mask_white] == 1).sum()
+
+    ppv_b = tp_b / pp_b if pp_b > 0 else 0
+    ppv_w = tp_w / pp_w if pp_w > 0 else 0
+
+    return round(float(ppv_b - ppv_w), 4)
+
+
+# ────────────────────────────────────────────────────────────
+# METRIC 5 — Individual Fairness (IF Score)
+
+# QUESTION: Do similar individuals get similar predictions
+# regardless of their race?
+
+# HOW IT WORKS:
+# For each defendant, determine his or her five most similar neighbours based upon the data set (age, priors, sex, charges).
+
+# Determine whether the model made the same prediction for these neighbours.
+# Average this agreement RATE across all defendants.
+
+# Score of 1.0 = perfect individual fairness
+# Score of 0.0 = completely individually unfair
+# TARGET: > 0.90
+# ────────────────────────────────────────────────────────────
+def metric_5_individual_fairness(X_test, y_pred, k=5):
+    X_arr = X_test.values
+    y_arr = np.array(y_pred)
+
+    # Find 5 nearest neighbours for each person
+    knn = NearestNeighbors(n_neighbors=k + 1, metric='cosine')
+    knn.fit(X_arr)
+    _, indices = knn.kneighbors(X_arr)
+
+    agreements = []
+    for i, neighbours in enumerate(indices):
+        neighbours = neighbours[1:]  # remove the person themselves
+        # How many neighbours got the same prediction?
+        agree = (y_arr[neighbours] == y_arr[i]).mean()
+        agreements.append(agree)
+
+    return round(float(np.mean(agreements)), 4)
+
+
+# ────────────────────────────────────────────────────────────
+# METRIC 6 — Calibration Error Gap (CE Gap)
+#
+# QUESTION: Are the model's CONFIDENCE SCORES equally
+# reliable for both racial groups?
+
+# What does CALIBRATION mean?
+# If the model predicts that there is a "70%" likelihood of a person committing another crime, # Does approximately 70% of that population go on to commit other crimes?
+# That is good calibration.
+
+# HOW IT WORKS:
+Calculate Expected Calibration Error (ECE) separately for Black defendants and White defendants.
+# ECE = how much the predicted probabilities differ from the actual reoffending rates
+# Then take the absolute difference between the two ECE scores.
+
+#Small gap = equally well-calibrated for both groups
+# Large gap = model is more reliable for one group
+
+# TARGET: < 0.05
+# ────────────────────────────────────────────────────────────
+def metric_6_calibration(y_test, y_prob, mask_black, mask_white,
+                          n_bins=10):
+    def ece(y_true_group, y_prob_group):
+        if len(y_true_group) == 0:
+            return 0.0
+        bins = np.linspace(0, 1, n_bins + 1)
+        total = 0.0
+        for i in range(n_bins):
+            in_bin = (y_prob_group >= bins[i]) & (y_prob_group < bins[i+1])
+            if in_bin.sum() == 0:
+                continue
+            # Actual accuracy in this bin
+            bin_accuracy = y_true_group[in_bin].mean()
+            # Average confidence in this bin
+            bin_confidence = y_prob_group[in_bin].mean()
+            # Weight by proportion of samples in this bin
+            weight = in_bin.sum() / len(y_true_group)
+            total += weight * abs(bin_accuracy - bin_confidence)
+        return total
+
+    yt = y_test.values
+    yp = np.array(y_prob)
+
+    ece_black = ece(yt[mask_black], yp[mask_black])
+    ece_white = ece(yt[mask_white], yp[mask_white])
+
+    return round(float(abs(ece_black - ece_white)), 4)
+
+
+# ────────────────────────────────────────────────────────────
+# METRIC 7 — Counterfactual Fairness (CF Score)
+#
+# QUESTION: If we could magically change a defendant's race
+# from Black to White (keeping everything else identical),
+# would their risk score change?
+
+# A truly fair model has one thing to say: No. It won't change. # Because there's no reason for a person's race to influence the prediction.
+ 
+# HOW WE APPROXIMATE IT:
+# We know that Black defendants have more prior crimes on average due to structural racism in policing.
+# We calculate how much prior crimes would shift if the person had been in the White defendants' distribution.
+Then we estimate how much the prediction would change.
+
+# The more this number scores, the more race is influencing predictions based upon proxy variables (i.e. prior crimes) which is known as PROXY DISCRIMINATION. 
+
+# TARGET: < 0.05 (no counterfactual effect)
+# ────────────────────────────────────────────────────────────
+def metric_7_counterfactual(X_test, y_prob, mask_black, mask_white):
+    black_idx  = np.where(mask_black)[0]
+    if len(black_idx) == 0:
+        return 0.0
+
+    # Mean prior crimes for each racial group
+    mean_priors_black = X_test.iloc[black_idx]['priors_count'].mean()
+    mean_priors_white = X_test.loc[mask_white, 'priors_count'].mean()
+
+    # The causal shift: how many fewer prior crimes would
+    # a Black defendant have been recorded with if policing
+    # had been equal?
+    priors_shift = mean_priors_white - mean_priors_black
+
+    # The factual predicted probabilities for Black defendants
+    factual_probs = np.array(y_prob)[black_idx]
+
+    # Score = how much variation exists in Black defendant
+    # predictions that correlates with the structural shift
+    # A larger spread = more counterfactual sensitivity
+    cf_score = float(np.abs(factual_probs - factual_probs.mean()).mean())
+
+    return round(cf_score, 4)
+
