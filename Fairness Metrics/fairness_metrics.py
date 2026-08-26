@@ -371,3 +371,57 @@ def metric_7_counterfactual(X_test, y_prob, mask_black, mask_white):
 
     return round(cf_score, 4)
 
+
+# SECTION 5 — RUN ALL SEVEN METRICS ON ALL FOUR MODELS
+#_______________________________________________________________________
+
+print("\n[STEP 3] Computing all seven fairness metrics...")
+print("         (This may take 30-60 seconds for Individual Fairness)")
+
+all_results = []
+
+for model_name, preds in predictions.items():
+    print(f"\n  ── {model_name} ──────────────────────────────────")
+
+    y_pred = preds['y_pred']
+    y_prob = preds['y_prob']
+
+    # Run all seven metrics
+    dpd   = metric_1_dpd(y_pred, mask_black, mask_white)
+    eod   = metric_2_eod(y_test, y_pred, mask_black, mask_white)
+    eopd  = metric_3_eopd(y_test, y_pred, mask_black, mask_white)
+    pp    = metric_4_pp(y_test, y_pred, mask_black, mask_white)
+    inf_  = metric_5_individual_fairness(X_test, y_pred)
+    cal   = metric_6_calibration(y_test, y_prob, mask_black, mask_white)
+    cf    = metric_7_counterfactual(X_test, y_prob, mask_black, mask_white)
+
+    # Print results with pass/fail verdict
+    THRESHOLD = 0.05
+
+    metrics_display = [
+        ("1. Demographic Parity Diff",  dpd,  abs(dpd) < THRESHOLD,  "< 0.05",  False),
+        ("2. Equalised Odds Diff",      eod,  abs(eod) < THRESHOLD,  "< 0.05",  False),
+        ("3. Equal Opportunity Diff",   eopd, abs(eopd) < THRESHOLD, "< 0.05",  False),
+        ("4. Predictive Parity Gap",    pp,   abs(pp) < THRESHOLD,   "< 0.05",  False),
+        ("5. Individual Fairness",      inf_, inf_ > 0.90,           "> 0.90",  True),
+        ("6. Calibration Error Gap",    cal,  abs(cal) < THRESHOLD,  "< 0.05",  False),
+        ("7. Counterfactual Fairness",  cf,   abs(cf) < 0.10,        "< 0.10",  False),
+    ]
+
+    print(f"  {'Metric':<32} {'Value':>8}  {'Target':>8}  {'Verdict':>10}")
+    print(f"  {'-'*62}")
+    for name, val, is_fair, target, higher_better in metrics_display:
+        verdict = "✓ FAIR" if is_fair else "✗ BIAS"
+        print(f"  {name:<32} {val:>8.4f}  {target:>8}  {verdict:>10}")
+
+    all_results.append({
+        'Model':        model_name,
+        'DPD':          dpd,
+        'EOD':          eod,
+        'EOpD':         eopd,
+        'PP_Gap':       pp,
+        'Indiv_Fair':   inf_,
+        'Calibration':  cal,
+        'Counterfact':  cf,
+    })
+
