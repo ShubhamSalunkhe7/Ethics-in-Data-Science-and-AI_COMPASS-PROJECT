@@ -473,3 +473,32 @@ for _, row in df_metrics.iterrows():
 
 print(f"\n  ✓ = passes fairness threshold   ✗ = fails fairness threshold")
 
+# SECTION 7 — Confirmation of IMPOSSIBILITY THEOREM
+#_______________________________________________________________________
+
+print("\n\n" + "=" * 60)
+print("  IMPOSSIBILITY THEOREM CHECK")
+print("=" * 60)
+
+for _, row in df_metrics.iterrows():
+    dpd_large  = abs(row['DPD'])  > 0.05
+    eod_large  = abs(row['EOD'])  > 0.05
+    pp_small   = abs(row['PP_Gap']) < 0.15
+
+    theorem_holds = dpd_large and eod_large and pp_small
+
+    print(f"\n  {row['Model']}:")
+    print(f"    DPD = {row['DPD']:.4f}  → "
+          f"{'LARGE ✗ (unequal selection rates)' if dpd_large else 'small ✓'}")
+    print(f"    EOD = {row['EOD']:.4f}  → "
+          f"{'LARGE ✗ (unequal error rates)' if eod_large else 'small ✓'}")
+    print(f"    PP  = {row['PP_Gap']:.4f}  → "
+          f"{'small ✓ (calibration roughly equal)' if pp_small else 'LARGE'}")
+    if theorem_holds:
+        print(f"    → THEOREM CONFIRMED: Large DPD+EOD with small PP")
+        print(f"      Cannot satisfy all three simultaneously.")
+        print(f"      (Chouldechova 2017; Kleinberg et al. 2016)")
+    else:
+        print(f"    → Pattern does not perfectly match theorem prediction")
+
+        
