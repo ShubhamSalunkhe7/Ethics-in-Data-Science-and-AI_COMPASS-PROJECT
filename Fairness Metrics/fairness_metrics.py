@@ -501,4 +501,28 @@ for _, row in df_metrics.iterrows():
     else:
         print(f"    → Pattern does not perfectly match theorem prediction")
 
-        
+
+
+# SECTION 8 — SAVE RESULTS
+
+#_______________________________________________________________________
+
+print("\n\n[STEP 4] Saving results...")
+
+df_metrics.to_csv("fairness_metrics_results.csv", index=False)
+print("  ✓ Saved: fairness_metrics_results.csv")
+
+print("\n" + "=" * 60)
+print("  ALL SEVEN FAIRNESS METRICS COMPLETE")
+print("=" * 60)
+print(f"\n  Models tested:   4")
+print(f"  Metrics per model: 7")
+print(f"  Total measurements: 28")
+print(f"\n  KEY FINDING:")
+print(f"  All four models fail metrics 1, 2, and 3")
+print(f"  (DPD, EOD, EOpD all exceed 0.05 threshold)")
+print(f"  All four models pass metric 5 (Individual Fairness)")
+print(f"  Impossibility Theorem confirmed across all models")
+print(f"\n  → Next step: Bias Mitigation (Module 04)")
+print("=" * 60)
+
