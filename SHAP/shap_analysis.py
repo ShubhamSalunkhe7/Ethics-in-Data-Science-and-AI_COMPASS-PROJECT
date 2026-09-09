@@ -135,3 +135,63 @@ for rank, (_, row) in enumerate(importance_df.iterrows(), 1):
     print(f"  {rank:<6} {row['Feature']:<25} "
           f"{row['Mean_SHAP']:>12.4f}  {bar}")
 
+
+# SECTION 5 — CHART 1: Beeswarm Plot
+# One dot per defendant, shows direction AND magnitude
+# ________________________________________________________________
+
+print("\n(STEP 4) Creating Chart 1 — Beeswarm plot")
+
+plt.figure(figsize=(10, 5))
+
+# summary_plot with plot_type='dot' creates the beeswarm
+# Each dot = one defendant
+# Position on x-axis = SHAP value (left=low risk, right=high risk)
+# Colour = actual feature value (blue=low, red=high)
+shap.summary_plot(
+    shap_values_xgb,
+    X_test_display,
+    plot_type='dot',
+    show=False,
+    max_display=10
+)
+
+plt.title(
+    'SHAP Beeswarm Plot — XGBoost\n'
+    'Each dot = one defendant  |  '
+    'Red = high feature value  |  '
+    'Position = impact on prediction',
+    fontsize=10, pad=12
+)
+plt.xlabel('SHAP Value (negative = lower risk, positive = higher risk)')
+plt.tight_layout()
+plt.savefig('shap_beeswarm_xgb.png', dpi=150, bbox_inches='tight')
+plt.close()
+print("  ✓ Saved: shap_beeswarm_xgb.png")
+
+
+# SECTION 6 — CHART 2: Bar Plot (Mean Absolute SHAP)
+# Simple overall feature importance ranking
+# ________________________________________________________________
+
+print("\n(STEP 5) Creating Chart 2 — Bar plot...")
+
+plt.figure(figsize=(8, 4))
+
+shap.summary_plot(
+    shap_values_xgb,
+    X_test_display,
+    plot_type='bar',
+    show=False,
+    max_display=10
+)
+
+plt.title(
+    'Mean |SHAP| Feature Importance — XGBoost\n'
+    'Higher bar = feature has larger average impact on predictions',
+    fontsize=10, pad=10
+)
+plt.tight_layout()
+plt.savefig('shap_bar_xgb.png', dpi=150, bbox_inches='tight')
+plt.close()
+print("  ✓ Saved: shap_bar_xgb.png")
