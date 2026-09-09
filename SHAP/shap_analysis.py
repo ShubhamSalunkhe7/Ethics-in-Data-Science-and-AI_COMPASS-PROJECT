@@ -101,3 +101,37 @@ lr.fit(X_train_scaled, y_train)
 print("  ✓ Logistic Regression trained")
 
 
+# SECTION 4 — XGBoost SHAP (TreeExplainer)
+# GLOBAL ANALYSIS — all 1,056 test defendants
+# ________________________________________________________________
+
+print("\n[STEP 3] Running XGBoost SHAP (TreeExplainer)...")
+print("  Computing SHAP values for all test defendants...")
+
+# TreeExplainer is the fast, exact explainer for tree models
+# It can compute SHAP values for all 1,056 defendants
+# in just a few seconds
+explainer_xgb = shap.TreeExplainer(xgb)
+
+# shap_values contains one SHAP value per person per feature
+# Shape: (1056, 4) — 1056 defendants, 4 features
+shap_values_xgb = explainer_xgb.shap_values(X_test)
+
+print(f"  SHAP values computed: shape = {shap_values_xgb.shape}")
+print(f"  (rows=defendants, columns=features)")
+
+# Mean absolute SHAP per feature (global importance)
+mean_abs_shap = np.abs(shap_values_xgb).mean(axis=0)
+importance_df = pd.DataFrame({
+    'Feature':    [FEATURE_LABELS[f] for f in FEATURES],
+    'Mean_SHAP':  mean_abs_shap.round(4)
+}).sort_values('Mean_SHAP', ascending=False)
+
+print(f"\n  GLOBAL FEATURE IMPORTANCE (Mean |SHAP|):")
+print(f"  {'Rank':<6} {'Feature':<25} {'Mean |SHAP|':>12}  Bar")
+print(f"  {'-'*60}")
+for rank, (_, row) in enumerate(importance_df.iterrows(), 1):
+    bar = '█' * int(row['Mean_SHAP'] * 80)
+    print(f"  {rank:<6} {row['Feature']:<25} "
+          f"{row['Mean_SHAP']:>12.4f}  {bar}")
+
