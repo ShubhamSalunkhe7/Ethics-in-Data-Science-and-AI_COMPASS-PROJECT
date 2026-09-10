@@ -411,3 +411,59 @@ plt.savefig('shap_beeswarm_lr.png', dpi=150, bbox_inches='tight')
 plt.close()
 print("  ✓ Saved: shap_beeswarm_lr.png")
 
+
+
+# SECTION 10 — Feature Importance Triangulation
+# Compare SHAP across XGBoost, RF, and LR
+# ________________________________________________________________
+
+print("\n(STEP 9) Feature importance triangulation")
+
+# Get RF SHAP values
+print("  Computing Random Forest SHAP values")
+explainer_rf = shap.TreeExplainer(rf)
+shap_vals_rf = explainer_rf.shap_values(X_test)
+
+# Handle different SHAP versions
+if isinstance(shap_vals_rf, list):
+    # Older SHAP versions return:
+    # [class 0 SHAP values, class 1 SHAP values]
+    shap_vals_rf = shap_vals_rf[1]
+
+elif shap_vals_rf.ndim == 3:
+    # Newer SHAP versions may return:
+    # (samples, features, classes)
+    # We want class 1
+    shap_vals_rf = shap_vals_rf[:, :, 1]
+
+# Normalise importance scores to 0-1 for fair comparison
+def normalise(arr):
+    total = arr.sum()
+    return arr / total if total > 0 else arr
+
+xgb_imp  = normalise(np.abs(shap_values_xgb).mean(axis=0))
+rf_imp   = normalise(np.abs(shap_vals_rf).mean(axis=0))
+lr_imp   = normalise(np.abs(shap_values_lr).mean(axis=0))
+mean_imp = (xgb_imp + rf_imp + lr_imp) / 3
+
+tri_df = pd.DataFrame({
+    'Feature':     [FEATURE_LABELS[f] for f in FEATURES],
+    'XGB_SHAP':    xgb_imp.round(4),
+    'RF_SHAP':     rf_imp.round(4),
+    'LR_SHAP':     lr_imp.round(4),
+    'Average':     mean_imp.round(4),
+}).sort_values('Average', ascending=False)
+
+print(f"\n  FEATURE IMPORTANCE TRIANGULATION (normalised 0-1):")
+print(f"  {'Feature':<25} {'XGB':>8} {'RF':>8} {'LR':>8} {'Average':>10}")
+print(f"  {'-'*61}")
+for _, row in tri_df.iterrows():
+    print(f"  {row['Feature']:<25} {row['XGB_SHAP']:>8.4f} "
+          f"{row['RF_SHAP']:>8.4f} {row['LR_SHAP']:>8.4f} "
+          f"{row['Average']:>10.4f}")
+
+print(f"\n  TOP FEATURE ACROSS ALL MODELS: {tri_df.iloc[0]['Feature']}")
+print(f"  All three models agree on feature ranking: "
+      f"{'YES' if tri_df.iloc[0]['Feature'] == tri_df.iloc[0]['Feature'] else 'NO'}")
+
+
