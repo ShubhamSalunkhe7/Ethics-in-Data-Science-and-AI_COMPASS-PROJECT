@@ -157,7 +157,7 @@ shap.summary_plot(
 )
 
 plt.title(
-    'SHAP Beeswarm Plot — XGBoost\n'
+    'SHAP Beeswarm Plot — XGBoost\n'"
     'Each dot = one defendant  |  '
     'Red = high feature value  |  '
     'Position = impact on prediction',
@@ -195,3 +195,89 @@ plt.tight_layout()
 plt.savefig('shap_bar_xgb.png', dpi=150, bbox_inches='tight')
 plt.close()
 print("  ✓ Saved: shap_bar_xgb.png")
+
+
+
+
+# SECTION 7 — CHART 3: Waterfall Plots (Local Analysis)
+# Three specific defendants — shows individual explanations
+# ________________________________________________________________
+
+print("\n(STEP 6) Creating Chart 3 — Waterfall plots (3 individuals)")
+
+# Get predicted probabilities
+y_prob_xgb = xgb.predict_proba(X_test)[:, 1]
+y_pred_xgb = xgb.predict(X_test)
+r_arr      = r_test.values
+
+# We need the SHAP Explanation object (not just values)
+# for waterfall plots
+shap_explanation = explainer_xgb(X_test_display)
+
+# ── Find three representative defendants ─────────────────────
+
+# Case A — Black defendant predicted HIGH RISK
+# (most common victim of the bias we are studying)
+case_a_candidates = np.where(
+    (r_arr == 1) &           # Black defendant
+    (y_pred_xgb == 1) &      # Predicted high risk
+    (y_prob_xgb > 0.65)      # High confidence
+)[0]
+idx_a = case_a_candidates[0] if len(case_a_candidates) > 0 else 0
+
+# Case B — White defendant predicted HIGH RISK
+# (compare with Case A — same prediction, different race)
+case_b_candidates = np.where(
+    (r_arr == 0) &           # White defendant
+    (y_pred_xgb == 1) &      # Predicted high risk
+    (y_prob_xgb > 0.65)      # High confidence
+)[0]
+idx_b = case_b_candidates[0] if len(case_b_candidates) > 0 else 1
+
+# Case C — Borderline defendant (probability closest to 0.5)
+# (shows the uncertainty zone where small changes matter)
+idx_c = int(np.argmin(np.abs(y_prob_xgb - 0.5)))
+
+cases = [
+    (idx_a, f"Case A — African-American, Predicted HIGH RISK"),
+    (idx_b, f"Case B — Caucasian, Predicted HIGH RISK"),
+    (idx_c, f"Case C — Borderline Prediction (prob ≈ 0.50)"),
+]
+
+for idx, title in cases:
+    try:
+        plt.figure(figsize=(9, 4))
+        shap.waterfall_plot(
+            shap_explanation[idx],
+            show=False,
+            max_display=10
+        )
+        race_label = 'Black' if r_arr[idx] == 1 else 'White'
+        plt.title(
+            f'SHAP Waterfall — {title}\n'
+            f'Predicted probability: {y_prob_xgb[idx]:.3f}  |  '
+            f'Actual outcome: {y_test.values[idx]}  |  '
+            f'Race: {race_label}',
+            fontsize=9, pad=8
+        )
+        plt.tight_layout()
+        fname = f"shap_waterfall_case_{title[5]}.png"
+        plt.savefig(fname, dpi=150, bbox_inches='tight')
+        plt.close()
+
+        print(f"  ✓ Saved: {fname}")
+        print(f"    Race={race_label}  "
+              f"Prob={y_prob_xgb[idx]:.3f}  "
+              f"Actual={y_test.values[idx]}")
+
+        # Print the SHAP values for this person in plain text
+        print(f"    Feature contributions for this defendant:")
+        sv = shap_values_xgb[idx]
+        for feat, val in zip(FEATURES, sv):
+            direction = '→ HIGH RISK' if val > 0 else '→ LOW RISK'
+            bar = '█' * int(abs(val) * 40)
+            print(f"      {FEATURE_LABELS[feat]:<22} "
+                  f"{val:>+.4f}  {direction}  {bar}")
+
+    except Exception as e:
+        print(f"  Waterfall failed for {title}: {e}")

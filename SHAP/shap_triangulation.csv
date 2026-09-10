@@ -1,0 +1,5 @@
+Feature,XGB_SHAP,RF_SHAP,LR_SHAP,Average
+Prior Crimes,0.489,0.4887,0.4509,0.4762
+Age,0.3534,0.3444,0.3644,0.3541
+Sex (Male=1),0.0838,0.0852,0.1,0.0897
+Felony Charge (1=Yes),0.0737,0.0817,0.0847,0.08

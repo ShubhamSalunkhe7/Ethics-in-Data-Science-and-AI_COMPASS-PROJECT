@@ -1,0 +1,5 @@
+Feature,Mean_SHAP
+Prior Crimes,0.7221
+Age,0.5219
+Sex (Male=1),0.1238
+Felony Charge (1=Yes),0.1088

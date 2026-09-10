@@ -1,0 +1,5 @@
+Feature,Black,White,Disparity
+Prior Crimes,0.768,0.6549,0.1132
+Age,0.5317,0.5075,0.0242
+Sex (Male=1),0.1142,0.1378,-0.0236
+Felony Charge (1=Yes),0.1056,0.1136,-0.008
