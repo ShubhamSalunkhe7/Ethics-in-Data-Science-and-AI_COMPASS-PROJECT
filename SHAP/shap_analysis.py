@@ -197,8 +197,6 @@ plt.close()
 print("  ✓ Saved: shap_bar_xgb.png")
 
 
-
-
 # SECTION 7 — CHART 3: Waterfall Plots (Local Analysis)
 # Three specific defendants — shows individual explanations
 # ________________________________________________________________
