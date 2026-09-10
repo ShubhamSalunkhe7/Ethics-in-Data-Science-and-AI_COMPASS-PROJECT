@@ -279,3 +279,135 @@ for idx, title in cases:
 
     except Exception as e:
         print(f"  Waterfall failed for {title}: {e}")
+
+
+
+# SECTION 8 — CHART 4: Per-Race SHAP Comparison
+# THE KEY CHART for proving proxy discrimination
+# ________________________________________________________________
+
+print("\n(STEP 7) Creating Chart 4 — Per-race SHAP comparison")
+
+# Split SHAP values by race
+shap_black = shap_values_xgb[mask_black]
+shap_white = shap_values_xgb[mask_white]
+
+# Mean absolute SHAP per feature per race
+mean_shap_black = np.abs(shap_black).mean(axis=0)
+mean_shap_white = np.abs(shap_white).mean(axis=0)
+
+feature_labels_list = [FEATURE_LABELS[f] for f in FEATURES]
+
+race_df = pd.DataFrame({
+    'Feature':    feature_labels_list,
+    'Black':      mean_shap_black.round(4),
+    'White':      mean_shap_white.round(4),
+    'Disparity':  (mean_shap_black - mean_shap_white).round(4)
+}).sort_values('Black', ascending=False)
+
+print(f"\n  Per-Race Mean |SHAP| Values:")
+print(f"  {'Feature':<25} {'Black':>8} {'White':>8} {'Gap':>8}  Meaning")
+print(f"  {'-'*70}")
+for _, row in race_df.iterrows():
+
+    if row['Disparity'] > 0:
+        meaning = "Higher attribution magnitude for Black"
+    else:
+        meaning = "Higher attribution magnitude for White"
+
+    print(
+        f"  {row['Feature']:<25} "
+        f"{row['Black']:>8.4f} "
+        f"{row['White']:>8.4f} "
+        f"{row['Disparity']:>+8.4f}  "
+        f"{meaning}"
+    )
+
+# Create the comparison chart
+x = np.arange(len(feature_labels_list))
+w = 0.35
+
+fig, ax = plt.subplots(figsize=(9, 5))
+
+bars_b = ax.bar(x - w/2, race_df['Black'], w,
+                label='African-American',
+                color='#C00000', alpha=0.85, edgecolor='white')
+bars_w = ax.bar(x + w/2, race_df['White'], w,
+                label='Caucasian',
+                color='#2E75B6', alpha=0.85, edgecolor='white')
+
+# Add value labels on top of bars
+for bar in list(bars_b) + list(bars_w):
+    ax.text(
+        bar.get_x() + bar.get_width() / 2,
+        bar.get_height() + 0.002,
+        f'{bar.get_height():.4f}',
+        ha='center', va='bottom', fontsize=8
+    )
+
+ax.set_xticks(x)
+ax.set_xticklabels(race_df['Feature'], rotation=10, ha='right')
+ax.set_ylabel('Mean |SHAP Value|')
+ax.set_title(
+    'SHAP Feature Impact by Race — Differential Feature Attribution\n'
+    'Comparison of mean absolute SHAP values across racial groups',
+    fontsize=9
+)
+ax.legend()
+plt.tight_layout()
+plt.savefig('shap_race_comparison.png', dpi=150, bbox_inches='tight')
+plt.close()
+print("\n  ✓ Saved: shap_race_comparison.png")
+
+
+
+# SECTION 9 — Logistic Regression SHAP (LinearExplainer)
+# Shows SHAP for the interpretable baseline model
+# ________________________________________________________________
+
+print("\n(STEP 8) Running Logistic Regression SHAP (LinearExplainer)")
+
+# LinearExplainer is the fast exact explainer for linear models
+# It uses the model's coefficients directly
+explainer_lr = shap.LinearExplainer(
+    lr,
+    X_train_scaled,
+    feature_perturbation='interventional'
+)
+
+shap_values_lr = explainer_lr.shap_values(X_test_scaled)
+
+# For LR, SHAP values should match coefficients closely
+print(f"\n  SHAP vs Coefficients comparison (Logistic Regression):")
+print(f"  {'Feature':<25} {'Coeff':>10} {'Mean SHAP':>12} {'Match?':>8}")
+print(f"  {'-'*57}")
+coefficients = lr.coef_[0]
+mean_lr_shap = shap_values_lr.mean(axis=0)
+for feat, coef, shap_v in zip(FEATURES, coefficients, mean_lr_shap):
+    match = "✓" if (coef > 0) == (shap_v > 0) else "✗"
+    print(f"  {FEATURE_LABELS[feat]:<25} "
+          f"{coef:>10.4f} {shap_v:>12.4f} {match:>8}")
+print(f"\n  If directions match ✓ = SHAP is consistent with LR coefficients")
+
+# LR beeswarm
+plt.figure(figsize=(9, 4))
+X_test_display_scaled = pd.DataFrame(
+    X_test_scaled,
+    columns=[FEATURE_LABELS[f] for f in FEATURES]
+)
+shap.summary_plot(
+    shap_values_lr,
+    X_test_display_scaled,
+    plot_type='dot',
+    show=False
+)
+plt.title(
+    'SHAP Beeswarm — Logistic Regression\n'
+    'Interpretable baseline: SHAP values closely match coefficients',
+    fontsize=10, pad=10
+)
+plt.tight_layout()
+plt.savefig('shap_beeswarm_lr.png', dpi=150, bbox_inches='tight')
+plt.close()
+print("  ✓ Saved: shap_beeswarm_lr.png")
+
