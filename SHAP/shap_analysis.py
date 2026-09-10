@@ -467,3 +467,33 @@ print(f"  All three models agree on feature ranking: "
       f"{'YES' if tri_df.iloc[0]['Feature'] == tri_df.iloc[0]['Feature'] else 'NO'}")
 
 
+
+# SECTION 11 — Save All Results
+# ________________________________________________________________
+
+print("\n(STEP 10) Saving all results")
+
+# Save feature importance table
+importance_df.to_csv('shap_feature_importance.csv', index=False)
+print("  ✓ Saved: shap_feature_importance.csv")
+
+# Save per-race comparison
+race_df.to_csv('shap_race_comparison.csv', index=False)
+print("  ✓ Saved: shap_race_comparison.csv")
+
+# Save triangulation
+tri_df.to_csv('shap_triangulation.csv', index=False)
+print("  ✓ Saved: shap_triangulation.csv")
+
+# Save SHAP values for all test defendants
+shap_full_df = pd.DataFrame(
+    shap_values_xgb,
+    columns=[FEATURE_LABELS[f] for f in FEATURES]
+)
+shap_full_df['race_binary']    = r_test.values
+shap_full_df['actual_outcome'] = y_test.values
+shap_full_df['predicted_prob'] = xgb.predict_proba(X_test)[:, 1]
+shap_full_df.to_csv('shap_all_defendants.csv', index=False)
+print("  ✓ Saved: shap_all_defendants.csv")
+
+
